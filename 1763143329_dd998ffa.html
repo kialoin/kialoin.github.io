@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统仪表盘主页 - 用户行为分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-medium: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-light);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        .chart-type-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .chart-type-btn {
+            padding: 0.75rem;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .chart-type-btn:hover {
+            border-color: var(--secondary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+        .chart-type-btn.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+        .chart-type-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .chart-type-btn span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        .stat-icon.blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .stat-icon.green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .stat-icon.orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .stat-icon.purple {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        .stat-change {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+        }
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+        }
+        .chart-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: white;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-action:hover {
+            background: var(--bg-light);
+            color: var(--primary-blue);
+        }
+        .btn-primary-custom {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+        .quick-access-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .quick-access-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .quick-access-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        .quick-access-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+        .quick-access-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            z-index: 1000;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 70px;
+                height: calc(100vh - 70px);
+                z-index: 999;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .content-area {
+                padding: 1rem;
+            }
+            .mobile-menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-type-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .tooltip-custom {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-custom .tooltip-text {
+            visibility: hidden;
+            background: var(--text-primary);
+            color: white;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+            font-size: 0.75rem;
+        }
+        .tooltip-custom:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>用户行为分析系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-tachometer-alt me-1"></i>仪表盘</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="data-import.html"><i class="fas fa-database me-1"></i>数据管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="analysis.html"><i class="fas fa-chart-bar me-1"></i>分析可视化</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="report.html"><i class="fas fa-file-alt me-1"></i>报告生成</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="system-settings.html"><i class="fas fa-cog me-1"></i>系统管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.html"><i class="fas fa-user me-1"></i>个人中心</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">快捷入口</h5>
+                <div class="quick-access-grid">
+                    <div class="quick-access-card" onclick="window.location.href='data-import.html'">
+                        <div class="quick-access-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="quick-access-title">数据导入</div>
+                    </div>
+                    <div class="quick-access-card" onclick="window.location.href='analysis.html'">
+                        <div class="quick-access-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="quick-access-title">新建分析</div>
+                    </div>
+                    <div class="quick-access-card" onclick="window.location.href='report.html'">
+                        <div class="quick-access-icon">
+                            <i class="fas fa-file-export"></i>
+                        </div>
+                        <div class="quick-access-title">报告生成</div>
+                    </div>
+                    <div class="quick-access-card" onclick="window.location.href='system-settings.html'">
+                        <div class="quick-access-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="quick-access-title">系统设置</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">系统状态</h5>
+                <div class="filter-group">
+                    <label class="filter-label">最近分析任务</label>
+                    <select class="form-select" id="recentTasks">
+                        <option value="5">最近5个任务</option>
+                        <option value="10">最近10个任务</option>
+                        <option value="20">最近20个任务</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">异常检测</label>
+                    <select class="form-select" id="anomalyDetection">
+                        <option value="active">开启异常检测</option>
+                        <option value="disabled">关闭异常检测</option>
+                        <option value="last-hour">最近一小时</option>
+                    </select>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">系统信息</h5>
+                <div class="filter-group">
+                    <label class="filter-label">运行状态</label>
+                    <div class="form-control bg-success text-white">
+                        <i class="fas fa-circle me-2"></i>正常运行
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">服务器负载</label>
+                    <div class="form-control">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 45%" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">45% CPU使用率</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <main class="content-area">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value">124,580</div>
+                    <div class="stat-label">用户行为数据总量</div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up me-1"></i>12.5%
+                    </span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">近期分析任务数</div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up me-1"></i>8.3%
+                    </span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">异常检测结果</div>
+                    <span class="stat-change negative">
+                        <i class="fas fa-arrow-down me-1"></i>2.1%
+                    </span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="stat-value">98.7%</div>
+                    <div class="stat-label">系统可用性</div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up me-1"></i>0.3%
+                    </span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">每日活跃用户趋势</h3>
+                    <div class="chart-actions">
+                        <button class="btn-action tooltip-custom" onclick="zoomIn()">
+                            <i class="fas fa-search-plus"></i>
+                            <span class="tooltip-text">放大</span>
+                        </button>
+                        <button class="btn-action tooltip-custom" onclick="zoomOut()">
+                            <i class="fas fa-search-minus"></i>
+                            <span class="tooltip-text">缩小</span>
+                        </button>
+                        <button class="btn-action tooltip-custom" onclick="fullscreen()">
+                            <i class="fas fa-expand"></i>
+                            <span class="tooltip-text">全屏</span>
+                        </button>
+                        <button class="btn-action tooltip-custom" onclick="downloadChart()">
+                            <i class="fas fa-download"></i>
+                            <span class="tooltip-text">下载</span>
+                        </button>
+                    </div>
+                </div>
+                <div style="position: relative; height: 400px;">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">快速操作</h3>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <button class="btn btn-primary-custom w-100" onclick="window.location.href='data-import.html'">
+                            <i class="fas fa-upload me-2"></i>导入数据
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <button class="btn btn-primary-custom w-100" onclick="window.location.href='analysis.html'">
+                            <i class="fas fa-chart-line me-2"></i>开始分析
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <button class="btn btn-primary-custom w-100" onclick="window.location.href='report.html'">
+                            <i class="fas fa-file-export me-2"></i>生成报告
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <button class="btn btn-primary-custom w-100" onclick="window.location.href='system-settings.html'">
+                            <i class="fas fa-cogs me-2"></i>系统配置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">最近活动</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>操作类型</th>
+                                <th>用户</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2023-06-15 14:30</td>
+                                <td>数据导入</td>
+                                <td>张三</td>
+                                <td><span class="badge bg-success">完成</span></td>
+                            </tr>
+                            <tr>
+                                <td>2023-06-15 13:15</td>
+                                <td>分析任务</td>
+                                <td>李四</td>
+                                <td><span class="badge bg-warning">进行中</span></td>
+                            </tr>
+                            <tr>
+                                <td>2023-06-15 12:00</td>
+                                <td>报告生成</td>
+                                <td>王五</td>
+                                <td><span class="badge bg-success">完成</span></td>
+                            </tr>
+                            <tr>
+                                <td>2023-06-15 10:45</td>
+                                <td>系统维护</td>
+                                <td>系统</td>
+                                <td><span class="badge bg-info">计划</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+        </main>
+    </div>
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let mainChart;
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            setupEventListeners();
+        });
+        function initCharts() {
+            const mainCtx = document.getElementById('mainChart').getContext('2d');
+            mainChart = new Chart(mainCtx, {
+                type: 'line',
+                data: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    datasets: [{
+                        label: '活跃用户数',
+                        data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        function setupEventListeners() {
+            document.getElementById('realTimeUpdate').addEventListener('change', function() {
+                if (this.checked) {
+                    startRealTimeUpdate();
+                } else {
+                    stopRealTimeUpdate();
+                }
+            });
+        }
+        function zoomIn() {
+            mainChart.zoom(1.1);
+        }
+        function zoomOut() {
+            mainChart.zoom(0.9);
+        }
+        function fullscreen() {
+            const chartContainer = document.querySelector('.chart-container');
+            if (chartContainer.requestFullscreen) {
+                chartContainer.requestFullscreen();
+            }
+        }
+        function downloadChart() {
+            const link = document.createElement('a');
+            link.download = 'chart.png';
+            link.href = mainChart.toBase64Image();
+            link.click();
+        }
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+        let realTimeInterval;
+        function startRealTimeUpdate() {
+            realTimeInterval = setInterval(() => {
+                const datasets = mainChart.data.datasets;
+                datasets.forEach(dataset => {
+                    dataset.data = dataset.data.map(value => {
+                        const change = (Math.random() - 0.5) * value * 0.1;
+                        return Math.max(0, value + change);
+                    });
+                });
+                mainChart.update();
+            }, 3000);
+        }
+        function stopRealTimeUpdate() {
+            if (realTimeInterval) {
+                clearInterval(realTimeInterval);
+            }
+        }
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3`;
+            notification.style.zIndex = '9999';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        function loadData() {
+            fetch('/api/dashboard/data')
+                .then(response => response.json())
+                .then(data => {
+                    updateCharts(data);
+                })
+                .catch(error => {
+                    console.error('数据加载失败:', error);
+                    showNotification('数据加载失败', 'error');
+                });
+        }
+    </script>
+</body>
+</html>

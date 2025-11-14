@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户权限管理 - 用户行为分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-medium: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-light);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        .chart-type-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .chart-type-btn {
+            padding: 0.75rem;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .chart-type-btn:hover {
+            border-color: var(--secondary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+        .chart-type-btn.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+        .chart-type-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .chart-type-btn span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .permission-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+        .permission-tree {
+            background: var(--bg-medium);
+            border-radius: 10px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tree-node {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .tree-node:last-child {
+            border-bottom: none;
+        }
+        .tree-node-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .tree-node-header i {
+            margin-right: 0.5rem;
+            color: var(--text-muted);
+        }
+        .tree-node-content {
+            margin-left: 1.5rem;
+            padding: 0.5rem 0;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .user-table th {
+            background: var(--bg-medium);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .user-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .user-table tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+        }
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: white;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+        }
+        .btn-action:hover {
+            background: var(--bg-light);
+            color: var(--primary-blue);
+        }
+        .btn-primary-custom {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            z-index: 1000;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 70px;
+                height: calc(100vh - 70px);
+                z-index: 999;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .content-area {
+                padding: 1rem;
+            }
+            .mobile-menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .chart-type-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .tooltip-custom {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-custom .tooltip-text {
+            visibility: hidden;
+            background: var(--text-primary);
+            color: white;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+            font-size: 0.75rem;
+        }
+        .tooltip-custom:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>用户行为分析系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html"><i class="fas fa-tachometer-alt me-1"></i>仪表盘</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="data-import.html"><i class="fas fa-database me-1"></i>数据管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="analysis.html"><i class="fas fa-chart-bar me-1"></i>分析可视化</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="report.html"><i class="fas fa-file-alt me-1"></i>报告生成</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="system-settings.html"><i class="fas fa-cog me-1"></i>系统管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-user-shield me-1"></i>权限管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">权限管理</h5>
+                <div class="chart-type-selector">
+                    <div class="chart-type-btn active" data-tab="roles">
+                        <i class="fas fa-user-tag"></i>
+                        <span>角色管理</span>
+                    </div>
+                    <div class="chart-type-btn" data-tab="permissions">
+                        <i class="fas fa-lock"></i>
+                        <span>权限分配</span>
+                    </div>
+                    <div class="chart-type-btn" data-tab="users">
+                        <i class="fas fa-users"></i>
+                        <span>用户管理</span>
+                    </div>
+                    <div class="chart-type-btn" data-tab="audit">
+                        <i class="fas fa-history"></i>
+                        <span>操作审计</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">角色筛选</h5>
+                <div class="filter-group">
+                    <select class="form-select" id="roleFilter">
+                        <option value="all">所有角色</option>
+                        <option value="admin">管理员</option>
+                        <option value="analyst">分析师</option>
+                        <option value="viewer">查看者</option>
+                    </select>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">权限树状结构</h5>
+                <div class="permission-tree">
+                    <div class="tree-node">
+                        <div class="tree-node-header">
+                            <i class="fas fa-folder"></i>
+                            <span>数据访问</span>
+                        </div>
+                        <div class="tree-node-content">
+                            <div class="tree-node">
+                                <div class="tree-node-header">
+                                    <i class="fas fa-database"></i>
+                                    <span>用户数据</span>
+                                </div>
+                                <div class="tree-node-content">
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-eye"></i>
+                                            <span>查看</span>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-edit"></i>
+                                            <span>编辑</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="tree-node-header">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>分析数据</span>
+                                </div>
+                                <div class="tree-node-content">
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-eye"></i>
+                                            <span>查看</span>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-download"></i>
+                                            <span>导出</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tree-node">
+                        <div class="tree-node-header">
+                            <i class="fas fa-cogs"></i>
+                            <span>系统功能</span>
+                        </div>
+                        <div class="tree-node-content">
+                            <div class="tree-node">
+                                <div class="tree-node-header">
+                                    <i class="fas fa-user-shield"></i>
+                                    <span>权限管理</span>
+                                </div>
+                                <div class="tree-node-content">
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-user-plus"></i>
+                                            <span>添加用户</span>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-user-edit"></i>
+                                            <span>编辑用户</span>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-user-times"></i>
+                                            <span>禁用用户</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tree-node">
+                                <div class="tree-node-header">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>报告生成</span>
+                                </div>
+                                <div class="tree-node-content">
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <i class="fas fa-file-export"></i>
+                                            <span>导出报告</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <button class="btn btn-primary-custom w-100 mb-2" onclick="savePermissions()">
+                    <i class="fas fa-save me-2"></i>保存权限配置
+                </button>
+                <button class="btn btn-outline-secondary w-100" onclick="resetPermissions()">
+                    <i class="fas fa-redo me-2"></i>重置
+                </button>
+            </div>
+        </aside>
+        <main class="content-area">
+            <div class="permission-card" id="rolesTab">
+                <h3 class="card-title">角色管理</h3>
+                <div class="mb-3">
+                    <button class="btn btn-primary-custom" onclick="addRole()">
+                        <i class="fas fa-plus me-2"></i>添加角色
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>角色名称</th>
+                                <th>描述</th>
+                                <th>用户数量</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>管理员</td>
+                                <td>系统最高权限用户</td>
+                                <td>2</td>
+                                <td>2023-01-15</td>
+                                <td>
+                                    <button class="btn-action" onclick="editRole('管理员')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="deleteRole('管理员')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>分析师</td>
+                                <td>数据分析和报告生成</td>
+                                <td>8</td>
+                                <td>2023-02-20</td>
+                                <td>
+                                    <button class="btn-action" onclick="editRole('分析师')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="deleteRole('分析师')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>查看者</td>
+                                <td>仅可查看数据</td>
+                                <td>15</td>
+                                <td>2023-03-10</td>
+                                <td>
+                                    <button class="btn-action" onclick="editRole('查看者')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="deleteRole('查看者')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="permission-card" id="permissionsTab" style="display:none;">
+                <h3 class="card-title">权限分配</h3>
+                <p>为不同角色分配相应的权限</p>
+                <div class="mb-3">
+                    <select class="form-select w-auto" id="assignRole">
+                        <option value="">选择角色</option>
+                        <option value="admin">管理员</option>
+                        <option value="analyst">分析师</option>
+                        <option value="viewer">查看者</option>
+                    </select>
+                </div>
+                <div class="permission-tree">
+                    <div class="tree-node">
+                        <div class="tree-node-header">
+                            <i class="fas fa-folder"></i>
+                            <span>数据访问</span>
+                        </div>
+                        <div class="tree-node-content">
+                            <div class="tree-node">
+                                <div class="tree-node-header">
+                                    <i class="fas fa-database"></i>
+                                    <span>用户数据</span>
+                                </div>
+                                <div class="tree-node-content">
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <input type="checkbox" id="perm1">
+                                            <label for="perm1">查看</label>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <input type="checkbox" id="perm2">
+                                            <label for="perm2">编辑</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tree-node">
+                        <div class="tree-node-header">
+                            <i class="fas fa-cogs"></i>
+                            <span>系统功能</span>
+                        </div>
+                        <div class="tree-node-content">
+                            <div class="tree-node">
+                                <div class="tree-node-header">
+                                    <i class="fas fa-user-shield"></i>
+                                    <span>权限管理</span>
+                                </div>
+                                <div class="tree-node-content">
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <input type="checkbox" id="perm3">
+                                            <label for="perm3">添加用户</label>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <input type="checkbox" id="perm4">
+                                            <label for="perm4">编辑用户</label>
+                                        </div>
+                                    </div>
+                                    <div class="tree-node">
+                                        <div class="tree-node-header">
+                                            <input type="checkbox" id="perm5">
+                                            <label for="perm5">禁用用户</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="permission-card" id="usersTab" style="display:none;">
+                <h3 class="card-title">用户管理</h3>
+                <div class="mb-3">
+                    <button class="btn btn-primary-custom" onclick="addUser()">
+                        <i class="fas fa-user-plus me-2"></i>添加用户
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>最后登录</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>张三</td>
+                                <td>zhangsan@example.com</td>
+                                <td>管理员</td>
+                                <td><span class="status-badge status-active">启用</span></td>
+                                <td>2023-05-15 14:30</td>
+                                <td>
+                                    <button class="btn-action" onclick="editUser('张三')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="disableUser('张三')">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>李四</td>
+                                <td>lisi@example.com</td>
+                                <td>分析师</td>
+                                <td><span class="status-badge status-active">启用</span></td>
+                                <td>2023-05-14 09:15</td>
+                                <td>
+                                    <button class="btn-action" onclick="editUser('李四')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="disableUser('李四')">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>王五</td>
+                                <td>wangwu@example.com</td>
+                                <td>查看者</td>
+                                <td><span class="status-badge status-inactive">禁用</span></td>
+                                <td>2023-05-10 16:45</td>
+                                <td>
+                                    <button class="btn-action" onclick="editUser('王五')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action" onclick="enableUser('王五')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="permission-card" id="auditTab" style="display:none;">
+                <h3 class="card-title">操作审计</h3>
+                <div class="mb-3">
+                    <div class="input-group w-auto">
+                        <input type="text" class="form-control" placeholder="搜索操作记录...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>操作人</th>
+                                <th>操作类型</th>
+                                <th>操作对象</th>
+                                <th>详细信息</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>管理员</td>
+                                <td>添加用户</td>
+                                <td>用户：赵六</td>
+                                <td>角色：分析师</td>
+                                <td>2023-05-15 10:30</td>
+                            </tr>
+                            <tr>
+                                <td>张三</td>
+                                <td>编辑权限</td>
+                                <td>角色：分析师</td>
+                                <td>新增数据访问权限</td>
+                                <td>2023-05-14 15:20</td>
+                            </tr>
+                            <tr>
+                                <td>李四</td>
+                                <td>导出报告</td>
+                                <td>报告：月度分析报告</td>
+                                <td>导出格式：PDF</td>
+                                <td>2023-05-13 09:45</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+        </main>
+    </div>
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setupTabNavigation();
+        });
+        function setupTabNavigation() {
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const tab = this.dataset.tab;
+                    document.querySelectorAll('.permission-card').forEach(card => {
+                        card.style.display = 'none';
+                    });
+                    document.getElementById(tab + 'Tab').style.display = 'block';
+                });
+            });
+        }
+        function addRole() {
+            alert('添加角色功能');
+        }
+        function editRole(roleName) {
+            alert(`编辑角色：${roleName}`);
+        }
+        function deleteRole(roleName) {
+            if (confirm(`确定要删除角色 "${roleName}" 吗？`)) {
+                alert(`角色 "${roleName}" 已删除`);
+            }
+        }
+        function addUser() {
+            alert('添加用户功能');
+        }
+        function editUser(userName) {
+            alert(`编辑用户：${userName}`);
+        }
+        function disableUser(userName) {
+            if (confirm(`确定要禁用用户 "${userName}" 吗？`)) {
+                alert(`用户 "${userName}" 已禁用`);
+            }
+        }
+        function enableUser(userName) {
+            if (confirm(`确定要启用用户 "${userName}" 吗？`)) {
+                alert(`用户 "${userName}" 已启用`);
+            }
+        }
+        function savePermissions() {
+            alert('权限配置已保存');
+        }
+        function resetPermissions() {
+            if (confirm('确定要重置权限配置吗？')) {
+                alert('权限配置已重置');
+            }
+        }
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} position-fixed top-0 start-50 translate-middle-x mt-3`;
+            notification.style.zIndex = '9999';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

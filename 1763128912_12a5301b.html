@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能知识管理系统 - 知识收集中心</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-medium: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: white !important;
+            background: var(--primary-gradient);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .stat-card {
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: var(--primary-gradient);
+            opacity: 0.05;
+            border-radius: 50%;
+            transition: all 0.5s ease;
+        }
+        .stat-card:hover::before {
+            top: -30%;
+            right: -30%;
+        }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .stat-icon.blue {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .stat-icon.green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .stat-icon.orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .welcome-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        .welcome-section h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .welcome-section p {
+            opacity: 0.9;
+            margin: 0;
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 15px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .quick-action-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .timeline {
+            position: relative;
+            padding: 1rem 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-light);
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 1.5rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--primary-blue);
+        }
+        .timeline-time {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-content {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            padding: 1rem;
+        }
+        @media (max-width: 768px) {
+            .stat-number {
+                font-size: 2rem;
+            }
+            .quick-action-btn {
+                padding: 1rem;
+            }
+            .welcome-section {
+                padding: 1.5rem;
+            }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        .upload-area {
+            border: 2px dashed var(--border-light);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.03);
+        }
+        .tag-chip {
+            display: inline-block;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary-blue);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tag-chip:hover {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .tag-chip.recommended {
+            border: 1px solid var(--primary-blue);
+        }
+        .preview-content {
+            background: var(--bg-light);
+            border-radius: 10px;
+            padding: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .format-toolbar {
+            background: var(--bg-medium);
+            border-radius: 10px;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .format-btn {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .format-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i>智能知识管理
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-plus-circle me-1"></i>知识收集</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-list me-1"></i>知识管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-calendar-check me-1"></i>复习计划</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i>学习分析</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user-circle me-1"></i>个人中心</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-question-circle me-1"></i>帮助</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="position-relative me-3">
+                        <i class="fas fa-bell text-muted" style="font-size: 1.25rem; cursor: pointer;"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-avatar">张</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid px-4 py-4">
+        <div class="welcome-section fade-in-up">
+            <h1>知识收集中心</h1>
+            <p>通过多种方式快速收集和整理您的知识内容</p>
+        </div>
+        <ul class="nav nav-tabs mb-4" id="collectionTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button">手动输入</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button">文件上传</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="url-tab" data-bs-toggle="tab" data-bs-target="#url" type="button">网页抓取</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="collectionTabContent">
+            <div class="tab-pane fade show active" id="manual" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">手动添加知识</h5>
+                                <form>
+                                    <div class="mb-3">
+                                        <label class="form-label">知识标题</label>
+                                        <input type="text" class="form-control" placeholder="请输入知识标题">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">知识分类</label>
+                                        <select class="form-select">
+                                            <option selected>请选择分类</option>
+                                            <option>计算机科学</option>
+                                            <option>数学</option>
+                                            <option>英语</option>
+                                            <option>其他</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">内容格式化工具</label>
+                                        <div class="format-toolbar">
+                                            <span class="format-btn"><i class="fas fa-bold"></i></span>
+                                            <span class="format-btn"><i class="fas fa-italic"></i></span>
+                                            <span class="format-btn"><i class="fas fa-heading"></i></span>
+                                            <span class="format-btn"><i class="fas fa-link"></i></span>
+                                            <span class="format-btn"><i class="fas fa-image"></i></span>
+                                            <span class="format-btn"><i class="fas fa-list-ul"></i></span>
+                                            <span class="format-btn"><i class="fas fa-list-ol"></i></span>
+                                        </div>
+                                        <textarea class="form-control" rows="10" placeholder="请输入知识内容..."></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">标签</label>
+                                        <input type="text" class="form-control" placeholder="输入标签，用逗号分隔">
+                                        <div class="mt-2">
+                                            <span class="tag-chip recommended">机器学习</span>
+                                            <span class="tag-chip recommended">算法</span>
+                                            <span class="tag-chip recommended">Python</span>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">保存知识</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">内容预览</h5>
+                                <div class="preview-content">
+                                    <p>在这里将显示您输入内容的实时预览效果...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="upload" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">文件上传</h5>
+                        <div class="upload-area mb-4">
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--text-muted);"></i>
+                            <h5>拖拽文件到此处或点击上传</h5>
+                            <p class="text-muted">支持 PDF, DOC, TXT, Markdown 等格式</p>
+                            <button class="btn btn-primary mt-2">选择文件</button>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">知识分类</label>
+                            <select class="form-select">
+                                <option selected>请选择分类</option>
+                                <option>计算机科学</option>
+                                <option>数学</option>
+                                <option>英语</option>
+                                <option>其他</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">标签</label>
+                            <input type="text" class="form-control" placeholder="输入标签，用逗号分隔">
+                            <div class="mt-2">
+                                <span class="tag-chip recommended">文档</span>
+                                <span class="tag-chip recommended">笔记</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary">开始上传并处理</button>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="url" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">网页内容抓取</h5>
+                        <div class="mb-3">
+                            <label class="form-label">网页URL</label>
+                            <input type="url" class="form-control" placeholder="https://example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">提取选项</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="extractTitle" checked>
+                                <label class="form-check-label" for="extractTitle">提取标题</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="extractContent" checked>
+                                <label class="form-check-label" for="extractContent">提取正文内容</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="extractImages">
+                                <label class="form-check-label" for="extractImages">提取图片</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">知识分类</label>
+                            <select class="form-select">
+                                <option selected>请选择分类</option>
+                                <option>计算机科学</option>
+                                <option>数学</option>
+                                <option>英语</option>
+                                <option>其他</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">标签</label>
+                            <input type="text" class="form-control" placeholder="输入标签，用逗号分隔">
+                            <div class="mt-2">
+                                <span class="tag-chip recommended">网页</span>
+                                <span class="tag-chip recommended">在线资源</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary">开始抓取</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            const elements = document.querySelectorAll('.fade-in-up');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }, index * 100);
+            });
+        });
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.12)';
+            } else {
+                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.08)';
+            }
+        });
+        document.querySelectorAll('.tag-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                this.classList.toggle('recommended');
+            });
+        });
+    </script>
+</body>
+</html>

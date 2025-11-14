@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能行为分析配置 - 智能用户行为分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-secondary: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .dropdown-menu {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+        }
+        .config-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .config-card {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .config-card:hover {
+            border-color: var(--secondary-blue);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .config-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .config-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .config-btn {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .config-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+            border-color: var(--secondary-blue);
+        }
+        .form-control {
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        .form-control:hover {
+            border-color: var(--secondary-blue);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .slider-container {
+            margin: 1rem 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-light);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+        }
+        .performance-preview {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin: 0.5rem 0;
+        }
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .data-table th {
+            background: var(--bg-secondary);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .data-table tr:hover {
+            background: rgba(79, 70, 229, 0.05);
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .status-inactive {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-orange);
+        }
+        .sidebar {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 350px;
+            height: calc(100vh - 80px);
+            background: white;
+            border-radius: 20px 0 0 20px;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+        .sidebar-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .chart-type-card {
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .chart-type-card:hover {
+            border-color: var(--secondary-blue);
+            background: var(--bg-secondary);
+        }
+        .chart-type-card.active {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .chart-type-icon {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+        .chart-type-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-light);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 997;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        .main-content {
+            padding: 2rem;
+            margin-bottom: 60px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            .config-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .config-controls {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .status-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-light);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>智能行为分析系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-tachometer-alt me-1"></i>仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-database me-1"></i>数据管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="data-collection.html">数据采集配置</a></li>
+                            <li><a class="dropdown-item" href="data-preprocessing.html">数据预处理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-brain me-1"></i>智能分析
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="analysis-config.html">分析配置</a></li>
+                            <li><a class="dropdown-item" href="visualization.html">可视化中心</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt me-1"></i>报告系统
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="report-generation.html">报告生成</a></li>
+                            <li><a class="dropdown-item" href="custom-view.html">自定义视图</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="monitoring.html">
+                            <i class="fas fa-bell me-1"></i>监控警报
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cogs me-1"></i>系统管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="user-management.html">用户权限</a></li>
+                            <li><a class="dropdown-item" href="system-settings.html">系统设置</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="workspace.html">
+                            <i class="fas fa-user me-1"></i>个人中心
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="config-section">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h3 class="mb-4">机器学习算法配置</h3>
+                    <div class="config-card">
+                        <div class="config-header">
+                            <h5 class="config-title">
+                                <i class="fas fa-cluster me-2"></i>聚类分析参数设置
+                            </h5>
+                            <div class="config-controls">
+                                <button class="config-btn">
+                                    <i class="fas fa-save"></i> 保存
+                                </button>
+                                <button class="config-btn">
+                                    <i class="fas fa-sync-alt"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">聚类数量 (K)</label>
+                                    <input type="number" class="form-control" value="5" min="1" max="20">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">距离度量方法</label>
+                                    <select class="form-control">
+                                        <option>欧几里得距离</option>
+                                        <option>曼哈顿距离</option>
+                                        <option>余弦相似度</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">迭代次数</label>
+                                    <input type="number" class="form-control" value="300" min="10" max="1000">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">初始化方法</label>
+                                    <select class="form-control">
+                                        <option>K-Means++</option>
+                                        <option>随机初始化</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="config-card">
+                        <div class="config-header">
+                            <h5 class="config-title">
+                                <i class="fas fa-cogs me-2"></i>分类预测模型选择
+                            </h5>
+                            <div class="config-controls">
+                                <button class="config-btn">
+                                    <i class="fas fa-save"></i> 保存
+                                </button>
+                                <button class="config-btn">
+                                    <i class="fas fa-sync-alt"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">模型类型</label>
+                                    <select class="form-control">
+                                        <option>随机森林</option>
+                                        <option>支持向量机</option>
+                                        <option>逻辑回归</option>
+                                        <option>神经网络</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">特征重要性阈值</label>
+                                    <input type="range" class="slider" min="0" max="1" step="0.01" value="0.1">
+                                    <div class="slider-label">
+                                        <span>0%</span>
+                                        <span>100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">交叉验证折数</label>
+                                    <input type="number" class="form-control" value="5" min="2" max="10">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">正则化参数 (C)</label>
+                                    <input type="range" class="slider" min="0.01" max="10" step="0.01" value="1">
+                                    <div class="slider-label">
+                                        <span>0.01</span>
+                                        <span>10</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="config-card">
+                        <div class="config-header">
+                            <h5 class="config-title">
+                                <i class="fas fa-exclamation-triangle me-2"></i>异常检测阈值调整
+                            </h5>
+                            <div class="config-controls">
+                                <button class="config-btn">
+                                    <i class="fas fa-save"></i> 保存
+                                </button>
+                                <button class="config-btn">
+                                    <i class="fas fa-sync-alt"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">异常分数阈值</label>
+                                    <input type="range" class="slider" min="0" max="1" step="0.01" value="0.8">
+                                    <div class="slider-label">
+                                        <span>低</span>
+                                        <span>高</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">检测窗口大小</label>
+                                    <input type="number" class="form-control" value="100" min="10" max="1000">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">异常检测算法</label>
+                                    <select class="form-control">
+                                        <option>孤立森林</option>
+                                        <option>One-Class SVM</option>
+                                        <option>局部异常因子</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">滑动窗口大小</label>
+                                    <input type="number" class="form-control" value="50" min="10" max="500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="config-card performance-preview">
+                        <div class="config-header">
+                            <h5 class="config-title">
+                                <i class="fas fa-chart-line me-2"></i>算法性能预览
+                            </h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="metric-card">
+                                    <div class="metric-value">92.4%</div>
+                                    <div class="metric-label">准确率</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-card">
+                                    <div class="metric-value">87.6%</div>
+                                    <div class="metric-label">召回率</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-card">
+                                    <div class="metric-value">0.91</div>
+                                    <div class="metric-label">F1分数</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-card">
+                                    <div class="metric-value">0.85</div>
+                                    <div class="metric-label">AUC</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-center mb-0">
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                当前配置下模型性能表现优秀
+                            </p>
+                        </div>
+                    </div>
+                    <div class="config-card">
+                        <div class="config-header">
+                            <h5 class="config-title">
+                                <i class="fas fa-database me-2"></i>训练数据管理
+                            </h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>数据集名称</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>用户行为日志</td>
+                                        <td><span class="status-badge status-active">已激活</span></td>
+                                        <td>
+                                            <button class="config-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="config-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>页面访问记录</td>
+                                        <td><span class="status-badge status-active">已激活</span></td>
+                                        <td>
+                                            <button class="config-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="config-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>转化事件数据</td>
+                                        <td><span class="status-badge status-inactive">未激活</span></td>
+                                        <td>
+                                            <button class="config-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="config-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>用户属性信息</td>
+                                        <td><span class="status-badge status-active">已激活</span></td>
+                                        <td>
+                                            <button class="config-btn">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="config-btn">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary w-100">
+                                <i class="fas fa-plus me-2"></i>添加新数据集
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-cog"></i>
+    </button>
+    <div class="sidebar" id="sidebar">
+        <h5 class="sidebar-header">
+            <i class="fas fa-chart-pie me-2"></i>图表管理
+        </h5>
+        <div class="chart-type-grid">
+            <div class="chart-type-card" onclick="selectChartType('line')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="chart-type-name">折线图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('bar')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="chart-type-name">柱状图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('pie')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="chart-type-name">饼图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('scatter')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-braille"></i>
+                </div>
+                <div class="chart-type-name">散点图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('radar')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-spider"></i>
+                </div>
+                <div class="chart-type-name">雷达图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('funnel')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="chart-type-name">漏斗图</div>
+            </div>
+        </div>
+        <h6 class="mb-3">数据源配置</h6>
+        <div class="mb-3">
+            <label class="form-label">选择数据表</label>
+            <select class="form-select">
+                <option>用户行为日志</option>
+                <option>页面访问记录</option>
+                <option>转化事件数据</option>
+                <option>用户属性信息</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">聚合方式</label>
+            <select class="form-select">
+                <option>按小时</option>
+                <option>按天</option>
+                <option>按周</option>
+                <option>按月</option>
+            </select>
+        </div>
+        <button class="btn btn-primary w-100 mt-3" style="background: var(--primary-gradient); border: none;">
+            <i class="fas fa-plus me-2"></i>添加新图表
+        </button>
+    </div>
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-indicator"></span>
+            <span>系统运行正常</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-clock me-1"></i>
+            <span>最后更新: <span id="lastUpdate">刚刚</span></span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-database me-1"></i>
+            <span>数据量: 1,234,567 条</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-users me-1"></i>
+            <span>在线用户: 234</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        function selectChartType(type) {
+            document.querySelectorAll('.chart-type-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            console.log('Selected chart type:', type);
+        }
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN');
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        updateTime();
+        setInterval(() => {
+            updateTime();
+        }, 5000);
+    </script>
+</body>
+</html>

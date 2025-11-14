@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生碎片化知识智能整理系统 - 登录注册</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-secondary: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin: 0 0.25rem;
+        }
+        .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-blue) !important;
+        }
+        .nav-link.active {
+            background: var(--primary-gradient);
+            color: white !important;
+        }
+        .auth-container {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+            margin: 2rem auto;
+            gap: 2rem;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            flex: 1;
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-header h2 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        .auth-header p {
+            color: var(--text-secondary);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            outline: none;
+        }
+        .form-control.is-invalid {
+            border-color: var(--error-red);
+        }
+        .invalid-feedback {
+            color: var(--error-red);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .btn-auth {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        .divider {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-light);
+        }
+        .divider span {
+            background: white;
+            padding: 0 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .social-login {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-light);
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .social-btn.google { color: #DB4437; }
+        .social-btn.wechat { color: #07C160; }
+        .social-btn.github { color: #333; }
+        .switch-auth {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-secondary);
+        }
+        .switch-auth a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .switch-auth a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            .auth-card {
+                padding: 1.5rem;
+            }
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-green);
+            color: var(--success-green);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain"></i> 知识整理系统
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="#">
+                    <i class="fas fa-sign-in-alt"></i> 登录/注册
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>欢迎回来</h2>
+                <p>请登录您的账户</p>
+            </div>
+            <div class="alert-error" id="loginError">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="loginErrorMsg">用户名或密码错误</span>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="请输入用户名" required>
+                    <div class="invalid-feedback">请输入用户名</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="请输入密码" required>
+                    <div class="invalid-feedback">请输入密码</div>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">记住我</label>
+                </div>
+                <button type="submit" class="btn-auth">
+                    <i class="fas fa-sign-in-alt me-2"></i>登录
+                </button>
+            </form>
+            <div class="divider">
+                <span>或使用其他方式登录</span>
+            </div>
+            <div class="social-login">
+                <div class="social-btn google">
+                    <i class="fab fa-google"></i>
+                </div>
+                <div class="social-btn wechat">
+                    <i class="fab fa-weixin"></i>
+                </div>
+                <div class="social-btn github">
+                    <i class="fab fa-github"></i>
+                </div>
+            </div>
+            <div class="switch-auth">
+                还没有账户？<a href="#" onclick="showRegister()">立即注册</a>
+            </div>
+        </div>
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>创建账户</h2>
+                <p>加入我们开始学习之旅</p>
+            </div>
+            <div class="alert-success" id="registerSuccess">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>注册成功！请登录您的账户</span>
+            </div>
+            <div class="alert-error" id="registerError">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="registerErrorMsg">注册信息有误</span>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="registerUsername" placeholder="请输入用户名" required>
+                    <div class="invalid-feedback">用户名长度至少3位</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="email" class="form-control" id="registerEmail" placeholder="请输入邮箱地址" required>
+                    <div class="invalid-feedback">请输入有效的邮箱地址</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="registerPassword" placeholder="请输入密码" required>
+                    <div class="invalid-feedback">密码长度至少6位</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required>
+                    <div class="invalid-feedback">两次输入的密码不一致</div>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                    <label class="form-check-label" for="agreeTerms">我同意<a href="#">用户协议</a>和<a href="#">隐私政策</a></label>
+                    <div class="invalid-feedback">请同意用户协议和隐私政策</div>
+                </div>
+                <button type="submit" class="btn-auth">
+                    <i class="fas fa-user-plus me-2"></i>注册
+                </button>
+            </form>
+            <div class="switch-auth">
+                已有账户？<a href="#" onclick="showLogin()">立即登录</a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showLogin() {
+            document.querySelector('.auth-container').innerHTML = `
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>欢迎回来</h2>
+                        <p>请登录您的账户</p>
+                    </div>
+                    <div class="alert-error" id="loginError">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="loginErrorMsg">用户名或密码错误</span>
+                    </div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="loginUsername" placeholder="请输入用户名" required>
+                            <div class="invalid-feedback">请输入用户名</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="请输入密码" required>
+                            <div class="invalid-feedback">请输入密码</div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">记住我</label>
+                        </div>
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-sign-in-alt me-2"></i>登录
+                        </button>
+                    </form>
+                    <div class="divider">
+                        <span>或使用其他方式登录</span>
+                    </div>
+                    <div class="social-login">
+                        <div class="social-btn google">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="social-btn wechat">
+                            <i class="fab fa-weixin"></i>
+                        </div>
+                        <div class="social-btn github">
+                            <i class="fab fa-github"></i>
+                        </div>
+                    </div>
+                    <div class="switch-auth">
+                        还没有账户？<a href="#" onclick="showRegister()">立即注册</a>
+                    </div>
+                </div>
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>创建账户</h2>
+                        <p>加入我们开始学习之旅</p>
+                    </div>
+                    <div class="alert-success" id="registerSuccess">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>注册成功！请登录您的账户</span>
+                    </div>
+                    <div class="alert-error" id="registerError">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="registerErrorMsg">注册信息有误</span>
+                    </div>
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="registerUsername" placeholder="请输入用户名" required>
+                            <div class="invalid-feedback">用户名长度至少3位</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="registerEmail" placeholder="请输入邮箱地址" required>
+                            <div class="invalid-feedback">请输入有效的邮箱地址</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="registerPassword" placeholder="请输入密码" required>
+                            <div class="invalid-feedback">密码长度至少6位</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">确认密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required>
+                            <div class="invalid-feedback">两次输入的密码不一致</div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">我同意<a href="#">用户协议</a>和<a href="#">隐私政策</a></label>
+                            <div class="invalid-feedback">请同意用户协议和隐私政策</div>
+                        </div>
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-user-plus me-2"></i>注册
+                        </button>
+                    </form>
+                    <div class="switch-auth">
+                        已有账户？<a href="#" onclick="showLogin()">立即登录</a>
+                    </div>
+                </div>
+            `;
+            bindEvents();
+        }
+        function showRegister() {
+            document.querySelector('.auth-container').innerHTML = `
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>创建账户</h2>
+                        <p>加入我们开始学习之旅</p>
+                    </div>
+                    <div class="alert-success" id="registerSuccess">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>注册成功！请登录您的账户</span>
+                    </div>
+                    <div class="alert-error" id="registerError">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="registerErrorMsg">注册信息有误</span>
+                    </div>
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="registerUsername" placeholder="请输入用户名" required>
+                            <div class="invalid-feedback">用户名长度至少3位</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">邮箱</label>
+                            <input type="email" class="form-control" id="registerEmail" placeholder="请输入邮箱地址" required>
+                            <div class="invalid-feedback">请输入有效的邮箱地址</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="registerPassword" placeholder="请输入密码" required>
+                            <div class="invalid-feedback">密码长度至少6位</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">确认密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required>
+                            <div class="invalid-feedback">两次输入的密码不一致</div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">我同意<a href="#">用户协议</a>和<a href="#">隐私政策</a></label>
+                            <div class="invalid-feedback">请同意用户协议和隐私政策</div>
+                        </div>
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-user-plus me-2"></i>注册
+                        </button>
+                    </form>
+                    <div class="switch-auth">
+                        已有账户？<a href="#" onclick="showLogin()">立即登录</a>
+                    </div>
+                </div>
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>欢迎回来</h2>
+                        <p>请登录您的账户</p>
+                    </div>
+                    <div class="alert-error" id="loginError">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="loginErrorMsg">用户名或密码错误</span>
+                    </div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="loginUsername" placeholder="请输入用户名" required>
+                            <div class="invalid-feedback">请输入用户名</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="请输入密码" required>
+                            <div class="invalid-feedback">请输入密码</div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">记住我</label>
+                        </div>
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-sign-in-alt me-2"></i>登录
+                        </button>
+                    </form>
+                    <div class="divider">
+                        <span>或使用其他方式登录</span>
+                    </div>
+                    <div class="social-login">
+                        <div class="social-btn google">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="social-btn wechat">
+                            <i class="fab fa-weixin"></i>
+                        </div>
+                        <div class="social-btn github">
+                            <i class="fab fa-github"></i>
+                        </div>
+                    </div>
+                    <div class="switch-auth">
+                        还没有账户？<a href="#" onclick="showRegister()">立即注册</a>
+                    </div>
+                </div>
+            `;
+            bindEvents();
+        }
+        function validateLoginForm() {
+            const username = document.getElementById('loginUsername');
+            const password = document.getElementById('loginPassword');
+            let isValid = true;
+            if (!username.value.trim()) {
+                username.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                username.classList.remove('is-invalid');
+            }
+            if (!password.value.trim()) {
+                password.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                password.classList.remove('is-invalid');
+            }
+            return isValid;
+        }
+        function validateRegisterForm() {
+            const username = document.getElementById('registerUsername');
+            const email = document.getElementById('registerEmail');
+            const password = document.getElementById('registerPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const agreeTerms = document.getElementById('agreeTerms');
+            let isValid = true;
+            if (username.value.length < 3) {
+                username.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                username.classList.remove('is-invalid');
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email.value)) {
+                email.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                email.classList.remove('is-invalid');
+            }
+            if (password.value.length < 6) {
+                password.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                password.classList.remove('is-invalid');
+            }
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                confirmPassword.classList.remove('is-invalid');
+            }
+            if (!agreeTerms.checked) {
+                agreeTerms.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                agreeTerms.classList.remove('is-invalid');
+            }
+            return isValid;
+        }
+        function bindEvents() {
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (validateLoginForm()) {
+                        const loginError = document.getElementById('loginError');
+                        loginError.style.display = 'block';
+                        document.getElementById('loginErrorMsg').textContent = '用户名或密码错误';
+                    }
+                });
+            }
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (validateRegisterForm()) {
+                        const registerSuccess = document.getElementById('registerSuccess');
+                        const registerError = document.getElementById('registerError');
+                        registerSuccess.style.display = 'block';
+                        registerError.style.display = 'none';
+                    }
+                });
+            }
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            bindEvents();
+        });
+    </script>
+</body>
+</html>

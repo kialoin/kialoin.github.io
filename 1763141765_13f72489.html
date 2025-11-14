@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据预处理与清洗配置 - 智能用户行为分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-secondary: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .dropdown-menu {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+        }
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+        .filter-select {
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .filter-select:hover {
+            border-color: var(--secondary-blue);
+        }
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .config-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .config-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .config-item {
+            margin-bottom: 1.5rem;
+        }
+        .config-item:last-child {
+            margin-bottom: 0;
+        }
+        .config-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .config-description {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .quality-preview {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .quality-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .quality-metric:last-child {
+            border-bottom: none;
+        }
+        .quality-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .quality-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-good {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .status-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-orange);
+        }
+        .status-bad {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+        }
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+            border-color: var(--secondary-blue);
+        }
+        .primary-btn {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        .sidebar {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 350px;
+            height: calc(100vh - 80px);
+            background: white;
+            border-radius: 20px 0 0 20px;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+        .sidebar-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .chart-type-card {
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .chart-type-card:hover {
+            border-color: var(--secondary-blue);
+            background: var(--bg-secondary);
+        }
+        .chart-type-card.active {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .chart-type-icon {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+        .chart-type-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-light);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 997;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        .main-content {
+            padding: 2rem;
+            margin-bottom: 60px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            .filter-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .status-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-light);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>智能行为分析系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-tachometer-alt me-1"></i>仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-database me-1"></i>数据管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="data-collection.html">数据采集配置</a></li>
+                            <li><a class="dropdown-item active" href="data-preprocessing.html">数据预处理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-brain me-1"></i>智能分析
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="analysis-config.html">分析配置</a></li>
+                            <li><a class="dropdown-item" href="visualization.html">可视化中心</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt me-1"></i>报告系统
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="report-generation.html">报告生成</a></li>
+                            <li><a class="dropdown-item" href="custom-view.html">自定义视图</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="monitoring.html">
+                            <i class="fas fa-bell me-1"></i>监控警报
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cogs me-1"></i>系统管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="user-management.html">用户权限</a></li>
+                            <li><a class="dropdown-item" href="system-settings.html">系统设置</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="workspace.html">
+                            <i class="fas fa-user me-1"></i>个人中心
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="filter-section">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label">数据源:</label>
+                        <select class="filter-select" id="dataSource">
+                            <option value="user-behavior">用户行为日志</option>
+                            <option value="page-views">页面访问记录</option>
+                            <option value="conversion-events">转化事件数据</option>
+                            <option value="user-profiles">用户属性信息</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label">时间范围:</label>
+                        <select class="filter-select" id="timeRange">
+                            <option value="today">今日</option>
+                            <option value="7days" selected>近7天</option>
+                            <option value="30days">近30天</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label">处理状态:</label>
+                        <select class="filter-select" id="processStatus">
+                            <option value="all">全部</option>
+                            <option value="completed">已完成</option>
+                            <option value="pending">待处理</option>
+                            <option value="failed">失败</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" style="background: var(--primary-gradient); border: none; border-radius: 10px;">
+                        <i class="fas fa-sync-alt me-2"></i>刷新数据
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <h5 class="card-header">
+                        <i class="fas fa-wrench text-primary me-2"></i>去噪算法配置
+                    </h5>
+                    <div class="config-item">
+                        <label class="config-label">算法类型</label>
+                        <select class="form-select mb-2">
+                            <option>移动平均滤波器</option>
+                            <option>中值滤波器</option>
+                            <option>高斯滤波器</option>
+                            <option>小波去噪</option>
+                        </select>
+                        <p class="config-description">选择用于去除数据噪声的算法类型</p>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">滤波窗口大小</label>
+                        <input type="range" class="form-range" min="1" max="20" value="5">
+                        <p class="config-description">调整滤波窗口大小，影响去噪效果</p>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">阈值设置</label>
+                        <input type="number" class="form-control" value="0.5" step="0.1">
+                        <p class="config-description">设定去噪阈值，控制噪声过滤程度</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <h5 class="card-header">
+                        <i class="fas fa-code text-success me-2"></i>数据格式化规则
+                    </h5>
+                    <div class="config-item">
+                        <label class="config-label">日期格式</label>
+                        <select class="form-select mb-2">
+                            <option>YYYY-MM-DD</option>
+                            <option>MM/DD/YYYY</option>
+                            <option>DD-MM-YYYY</option>
+                        </select>
+                        <p class="config-description">统一日期字段的显示格式</p>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">数值精度</label>
+                        <input type="number" class="form-control" value="2" min="0" max="10">
+                        <p class="config-description">设置数值字段的小数位数</p>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">字符串处理</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="trimSpaces" checked>
+                            <label class="form-check-label" for="trimSpaces">自动去除首尾空格</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="lowercase">
+                            <label class="form-check-label" for="lowercase">转换为小写</label>
+                        </div>
+                        <p class="config-description">设定字符串字段的标准化处理规则</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <h5 class="card-header">
+                        <i class="fas fa-ruler-combined text-warning me-2"></i>标准化处理参数
+                    </h5>
+                    <div class="config-item">
+                        <label class="config-label">归一化方法</label>
+                        <select class="form-select mb-2">
+                            <option>最小-最大归一化</option>
+                            <option>Z-Score标准化</option>
+                            <option>小数缩放</option>
+                        </select>
+                        <p class="config-description">选择数据标准化的计算方法</p>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">目标范围</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="number" class="form-control" placeholder="最小值" value="0">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" class="form-control" placeholder="最大值" value="1">
+                            </div>
+                        </div>
+                        <p class="config-description">设定标准化后数据的目标取值范围</p>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">异常值处理</label>
+                        <select class="form-select mb-2">
+                            <option>删除异常值</option>
+                            <option>替换为边界值</option>
+                            <option>保留异常值</option>
+                        </select>
+                        <p class="config-description">设定如何处理识别出的异常值</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <h5 class="card-header">
+                        <i class="fas fa-chart-line text-info me-2"></i>数据质量预览
+                    </h5>
+                    <div class="quality-preview">
+                        <div class="quality-metric">
+                            <span>缺失值比例</span>
+                            <span class="quality-value">2.3%</span>
+                            <span class="quality-status status-good">良好</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span>重复数据率</span>
+                            <span class="quality-value">0.1%</span>
+                            <span class="quality-status status-good">良好</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span>异常值数量</span>
+                            <span class="quality-value">15个</span>
+                            <span class="quality-status status-warning">警告</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span>数据完整性</span>
+                            <span class="quality-value">97.7%</span>
+                            <span class="quality-status status-good">良好</span>
+                        </div>
+                        <div class="quality-metric">
+                            <span>格式一致性</span>
+                            <span class="quality-value">99.2%</span>
+                            <span class="quality-status status-good">良好</span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="action-btn me-2">
+                            <i class="fas fa-eye me-1"></i>查看详细报告
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-sync me-1"></i>重新评估
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="config-card">
+                    <h5 class="card-header">
+                        <i class="fas fa-check-circle text-success me-2"></i>清洗效果验证
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="config-item">
+                                <label class="config-label">验证指标</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="validateMissing" checked>
+                                    <label class="form-check-label" for="validateMissing">缺失值检查</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="validateDuplicates" checked>
+                                    <label class="form-check-label" for="validateDuplicates">重复值检测</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="validateFormat" checked>
+                                    <label class="form-check-label" for="validateFormat">格式验证</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="validateRange">
+                                    <label class="form-check-label" for="validateRange">范围合理性检查</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="config-item">
+                                <label class="config-label">执行操作</label>
+                                <div class="d-grid gap-2">
+                                    <button class="primary-btn mb-2">
+                                        <i class="fas fa-play me-2"></i>开始清洗
+                                    </button>
+                                    <button class="action-btn">
+                                        <i class="fas fa-save me-2"></i>保存配置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-cog"></i>
+    </button>
+    <div class="sidebar" id="sidebar">
+        <h5 class="sidebar-header">
+            <i class="fas fa-cogs me-2"></i>数据处理助手
+        </h5>
+        <div class="chart-type-grid">
+            <div class="chart-type-card" onclick="selectChartType('line')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="chart-type-name">数据清洗</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('bar')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="chart-type-name">数据质量</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('pie')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="chart-type-name">处理日志</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('scatter')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="chart-type-name">异常检测</div>
+            </div>
+        </div>
+        <h6 class="mb-3">快速操作</h6>
+        <div class="mb-3">
+            <button class="btn btn-outline-primary w-100 mb-2">
+                <i class="fas fa-sync-alt me-2"></i>批量清洗
+            </button>
+            <button class="btn btn-outline-success w-100 mb-2">
+                <i class="fas fa-file-export me-2"></i>导出结果
+            </button>
+            <button class="btn btn-outline-warning w-100 mb-2">
+                <i class="fas fa-history me-2"></i>历史记录
+            </button>
+        </div>
+        <h6 class="mb-3">帮助文档</h6>
+        <div class="mb-3">
+            <a href="#" class="btn btn-sm btn-outline-secondary w-100 mb-2">
+                <i class="fas fa-book me-2"></i>数据清洗指南
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-secondary w-100 mb-2">
+                <i class="fas fa-video me-2"></i>操作视频教程
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-secondary w-100">
+                <i class="fas fa-question-circle me-2"></i>常见问题
+            </a>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-indicator"></span>
+            <span>系统运行正常</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-clock me-1"></i>
+            <span>最后更新: <span id="lastUpdate">刚刚</span></span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-database me-1"></i>
+            <span>数据量: 1,234,567 条</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-users me-1"></i>
+            <span>在线用户: 234</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        function selectChartType(type) {
+            document.querySelectorAll('.chart-type-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            console.log('Selected chart type:', type);
+        }
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN');
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        setInterval(() => {
+            updateTime();
+        }, 5000);
+        document.getElementById('dataSource').addEventListener('change', function() {
+            console.log('Data source changed:', this.value);
+        });
+        document.getElementById('timeRange').addEventListener('change', function() {
+            console.log('Time range changed:', this.value);
+        });
+        document.getElementById('processStatus').addEventListener('change', function() {
+            console.log('Process status changed:', this.value);
+        });
+        updateTime();
+    </script>
+</body>
+</html>

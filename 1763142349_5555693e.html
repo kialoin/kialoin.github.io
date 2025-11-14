@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人工作台 - 智能用户行为分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-secondary: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .dropdown-menu {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+        }
+        .workbench-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 4px solid var(--primary-blue);
+        }
+        .workbench-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        .workbench-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .workbench-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .workbench-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .card-icon-blue {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary-blue);
+        }
+        .card-icon-green {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .card-icon-orange {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-orange);
+        }
+        .card-icon-purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent-purple);
+        }
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+            border-left: 4px solid var(--primary-blue);
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border-light);
+            margin-bottom: 1rem;
+        }
+        .profile-info {
+            margin-bottom: 1rem;
+        }
+        .profile-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .profile-field:last-child {
+            border-bottom: none;
+        }
+        .profile-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .profile-value {
+            color: var(--text-primary);
+        }
+        .recent-activity {
+            list-style: none;
+        }
+        .activity-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: flex-start;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-icon {
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .activity-content {
+            flex: 1;
+        }
+        .activity-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: flex-start;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-icon {
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .notification-content {
+            flex: 1;
+        }
+        .notification-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .notification-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .notification-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .preference-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .preference-item:last-child {
+            border-bottom: none;
+        }
+        .preference-label {
+            font-weight: 500;
+        }
+        .help-document {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .help-document:last-child {
+            border-bottom: none;
+        }
+        .help-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .help-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .sidebar {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 350px;
+            height: calc(100vh - 80px);
+            background: white;
+            border-radius: 20px 0 0 20px;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+        .sidebar-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-light);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 997;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        .main-content {
+            padding: 2rem;
+            margin-bottom: 60px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            .status-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-light);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>智能行为分析系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-tachometer-alt me-1"></i>仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-database me-1"></i>数据管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="data-collection.html">数据采集配置</a></li>
+                            <li><a class="dropdown-item" href="data-preprocessing.html">数据预处理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-brain me-1"></i>智能分析
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="analysis-config.html">分析配置</a></li>
+                            <li><a class="dropdown-item" href="visualization.html">可视化中心</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt me-1"></i>报告系统
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="report-generation.html">报告生成</a></li>
+                            <li><a class="dropdown-item" href="custom-view.html">自定义视图</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="monitoring.html">
+                            <i class="fas fa-bell me-1"></i>监控警报
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cogs me-1"></i>系统管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="user-management.html">用户权限</a></li>
+                            <li><a class="dropdown-item" href="system-settings.html">系统设置</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="workspace.html">
+                            <i class="fas fa-user me-1"></i>个人中心
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="text-center mb-4">
+                        <img src="https://via.placeholder.com/100" alt="头像" class="profile-avatar">
+                        <h4 class="mt-2">张三</h4>
+                        <p class="text-muted">高级分析师</p>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-field">
+                            <span class="profile-label">用户名:</span>
+                            <span class="profile-value">zhangsan</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-label">邮箱:</span>
+                            <span class="profile-value">zhangsan@example.com</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-label">部门:</span>
+                            <span class="profile-value">数据分析部</span>
+                        </div>
+                        <div class="profile-field">
+                            <span class="profile-label">入职时间:</span>
+                            <span class="profile-value">2022-03-15</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-primary w-100 mt-3">
+                        <i class="fas fa-edit me-2"></i>编辑资料
+                    </button>
+                </div>
+                <div class="workbench-card">
+                    <div class="workbench-card-header">
+                        <h5 class="workbench-card-title">
+                            <i class="fas fa-bell me-2"></i>消息通知中心
+                        </h5>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item">
+                            <div class="notification-icon card-icon-blue">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">新评论</div>
+                                <div class="notification-description">您的报告收到了新的评论</div>
+                                <div class="notification-time">1小时前</div>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <div class="notification-icon card-icon-green">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">任务完成</div>
+                                <div class="notification-description">您负责的分析任务已完成</div>
+                                <div class="notification-time">3小时前</div>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <div class="notification-icon card-icon-orange">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">系统提醒</div>
+                                <div class="notification-description">数据库维护将在今晚进行</div>
+                                <div class="notification-time">昨天</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="workbench-card">
+                    <div class="workbench-card-header">
+                        <h5 class="workbench-card-title">
+                            <i class="fas fa-history me-2"></i>最近操作记录
+                        </h5>
+                    </div>
+                    <ul class="recent-activity">
+                        <li class="activity-item">
+                            <div class="activity-icon card-icon-blue">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">生成用户行为分析报告</div>
+                                <div class="activity-time">今天 14:30</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon card-icon-green">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">导入新数据集</div>
+                                <div class="activity-time">今天 10:15</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon card-icon-orange">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">修改分析配置</div>
+                                <div class="activity-time">昨天 16:45</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon card-icon-purple">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">导出数据报表</div>
+                                <div class="activity-time">昨天 09:20</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="workbench-card">
+                    <div class="workbench-card-header">
+                        <h5 class="workbench-card-title">
+                            <i class="fas fa-sliders-h me-2"></i>个人偏好设置
+                        </h5>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">邮件通知</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailNotification" checked>
+                            <label class="form-check-label" for="emailNotification">开启</label>
+                        </div>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">消息推送</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="pushNotification" checked>
+                            <label class="form-check-label" for="pushNotification">开启</label>
+                        </div>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">数据自动保存</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoSave" checked>
+                            <label class="form-check-label" for="autoSave">开启</label>
+                        </div>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">夜间模式</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="darkMode">
+                            <label class="form-check-label" for="darkMode">开启</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="workbench-card">
+                    <div class="workbench-card-header">
+                        <h5 class="workbench-card-title">
+                            <i class="fas fa-book me-2"></i>帮助文档访问
+                        </h5>
+                    </div>
+                    <div class="help-document">
+                        <div class="help-title">快速入门指南</div>
+                        <div class="help-description">了解系统的各项功能和使用方法</div>
+                        <button class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-file-download me-1"></i>下载PDF
+                        </button>
+                    </div>
+                    <div class="help-document">
+                        <div class="help-title">API接口文档</div>
+                        <div class="help-description">查看系统提供的所有API接口说明</div>
+                        <button class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-link me-1"></i>访问文档
+                        </button>
+                    </div>
+                    <div class="help-document">
+                        <div class="help-title">常见问题解答</div>
+                        <div class="help-description">解决您在使用过程中遇到的问题</div>
+                        <button class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-question-circle me-1"></i>查看FAQ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-cog"></i>
+    </button>
+    <div class="sidebar" id="sidebar">
+        <h5 class="sidebar-header">
+            <i class="fas fa-cog me-2"></i>快捷设置
+        </h5>
+        <div class="mb-3">
+            <label class="form-label">主题颜色</label>
+            <select class="form-select">
+                <option>默认主题</option>
+                <option>深色主题</option>
+                <option>蓝色主题</option>
+                <option>绿色主题</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">显示语言</label>
+            <select class="form-select">
+                <option>中文简体</option>
+                <option>英文</option>
+                <option>中文繁体</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">数据刷新频率</label>
+            <select class="form-select">
+                <option>每5分钟</option>
+                <option>每10分钟</option>
+                <option>每30分钟</option>
+                <option>手动刷新</option>
+            </select>
+        </div>
+        <button class="btn btn-primary w-100 mt-3" style="background: var(--primary-gradient); border: none;">
+            <i class="fas fa-save me-2"></i>保存设置
+        </button>
+    </div>
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-indicator"></span>
+            <span>系统运行正常</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-clock me-1"></i>
+            <span>最后更新: <span id="lastUpdate">刚刚</span></span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-database me-1"></i>
+            <span>数据量: 1,234,567 条</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-users me-1"></i>
+            <span>在线用户: 234</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN');
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        updateTime();
+        setInterval(() => {
+            updateTime();
+        }, 5000);
+    </script>
+</body>
+</html>

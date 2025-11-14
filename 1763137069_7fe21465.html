@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能搜索 - 内容感知智能代码片段管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
+            --border-light: #e2e8f0;
+            --border-gray: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-link {
+            color: var(--text-gray);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+        }
+        .nav-link.active {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 3px;
+        }
+        .notification-badge {
+            position: relative;
+        }
+        .notification-badge .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .user-avatar:hover {
+            border-color: var(--primary-blue);
+            transform: scale(1.05);
+        }
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--primary-blue);
+        }
+        .search-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+        .search-input {
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+        }
+        .search-btn {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+        .filter-label {
+            font-weight: 500;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+        .filter-checkbox {
+            margin-right: 0.5rem;
+        }
+        .complexity-slider {
+            width: 100%;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .sort-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .sort-btn.active {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        .result-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+        .result-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        .result-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        .result-description {
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .tag {
+            background: var(--bg-gray);
+            color: var(--text-gray);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .result-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .action-btn {
+            background: none;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .action-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        @media (max-width: 768px) {
+            .search-container {
+                padding: 1.5rem;
+            }
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .sort-options {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-code"></i>
+                CodeAI Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="code-library.html">
+                            <i class="fas fa-folder"></i> 代码库
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="upload.html">
+                            <i class="fas fa-upload"></i> 上传/编辑
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="search.html">
+                            <i class="fas fa-search"></i> 搜索
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tags.html">
+                            <i class="fas fa-tags"></i> 标签管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.html">
+                            <i class="fas fa-user"></i> 个人资料
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="notification-badge">
+                        <a href="#" class="text-decoration-none text-dark">
+                            <i class="fas fa-bell fa-lg"></i>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                    <div class="dropdown user-dropdown">
+                        <img src="https://picsum.photos/seed/user123/100/100" alt="用户头像" class="user-avatar" data-bs-toggle="dropdown">
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> 设置</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle"></i> 帮助</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> 退出登录</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="container">
+            <div class="search-container">
+                <div class="row">
+                    <div class="col-12">
+                        <h1 class="display-5 fw-bold mb-4">智能代码搜索</h1>
+                        <p class="text-muted mb-4">通过关键词、标签、语言和复杂度等多维度条件进行精确搜索</p>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control search-input" placeholder="输入关键词搜索代码片段..." aria-label="搜索代码片段">
+                            <button class="btn search-btn" type="button">
+                                <i class="fas fa-search me-2"></i> 搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <h3 class="filter-title">高级筛选</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="filter-group">
+                            <label class="filter-label">编程语言</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" id="lang-python">
+                                    <label class="form-check-label" for="lang-python">Python</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" id="lang-js">
+                                    <label class="form-check-label" for="lang-js">JavaScript</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" id="lang-java">
+                                    <label class="form-check-label" for="lang-java">Java</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input filter-checkbox" type="checkbox" id="lang-ts">
+                                    <label class="form-check-label" for="lang-ts">TypeScript</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="filter-group">
+                            <label class="filter-label">复杂度范围</label>
+                            <input type="range" class="form-range complexity-slider" min="1" max="10" value="5">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">简单</span>
+                                <span class="text-muted">复杂</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="filter-group">
+                            <label class="filter-label">标签筛选</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="tag">算法</span>
+                                <span class="tag">数据结构</span>
+                                <span class="tag">机器学习</span>
+                                <span class="tag">Web开发</span>
+                                <span class="tag">数据库</span>
+                                <span class="tag">性能优化</span>
+                                <span class="tag">安全</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="result-header">
+                        <h2>搜索结果 (12)</h2>
+                        <div class="sort-options">
+                            <span class="text-muted me-2">排序方式:</span>
+                            <button class="sort-btn active">相关性</button>
+                            <button class="sort-btn">时间</button>
+                            <button class="sort-btn">热度</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="result-item">
+                        <h3 class="result-title">基于深度学习的图像识别算法实现</h3>
+                        <div class="result-meta">
+                            <span><i class="fas fa-language me-1"></i> Python</span>
+                            <span><i class="fas fa-clock me-1"></i> 2023-06-15</span>
+                            <span><i class="fas fa-fire me-1"></i> 复杂度: 7/10</span>
+                        </div>
+                        <p class="result-description">本代码实现了基于卷积神经网络的图像分类算法，包含数据预处理、模型训练和预测三个主要模块。使用TensorFlow框架构建，并提供了完整的训练流程。</p>
+                        <div class="result-tags">
+                            <span class="tag">算法</span>
+                            <span class="tag">深度学习</span>
+                            <span class="tag">计算机视觉</span>
+                            <span class="tag">TensorFlow</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn"><i class="fas fa-eye me-1"></i> 查看</button>
+                            <button class="action-btn"><i class="fas fa-download me-1"></i> 下载</button>
+                            <button class="action-btn"><i class="fas fa-star me-1"></i> 收藏</button>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <h3 class="result-title">React组件化开发最佳实践</h3>
+                        <div class="result-meta">
+                            <span><i class="fas fa-language me-1"></i> JavaScript</span>
+                            <span><i class="fas fa-clock me-1"></i> 2023-06-10</span>
+                            <span><i class="fas fa-fire me-1"></i> 复杂度: 5/10</span>
+                        </div>
+                        <p class="result-description">详细介绍React组件设计模式和状态管理方案，包含可复用组件的构建方法和性能优化技巧。适合中高级前端开发者参考。</p>
+                        <div class="result-tags">
+                            <span class="tag">前端</span>
+                            <span class="tag">React</span>
+                            <span class="tag">组件化</span>
+                            <span class="tag">最佳实践</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn"><i class="fas fa-eye me-1"></i> 查看</button>
+                            <button class="action-btn"><i class="fas fa-download me-1"></i> 下载</button>
+                            <button class="action-btn"><i class="fas fa-star me-1"></i> 收藏</button>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <h3 class="result-title">高性能数据库查询优化指南</h3>
+                        <div class="result-meta">
+                            <span><i class="fas fa-language me-1"></i> Java</span>
+                            <span><i class="fas fa-clock me-1"></i> 2023-06-05</span>
+                            <span><i class="fas fa-fire me-1"></i> 复杂度: 8/10</span>
+                        </div>
+                        <p class="result-description">深入探讨数据库查询优化策略，包括索引设计、SQL语句优化和连接池配置等内容。结合实际案例演示如何提升系统性能。</p>
+                        <div class="result-tags">
+                            <span class="tag">数据库</span>
+                            <span class="tag">性能优化</span>
+                            <span class="tag">JDBC</span>
+                            <span class="tag">MySQL</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn"><i class="fas fa-eye me-1"></i> 查看</button>
+                            <button class="action-btn"><i class="fas fa-download me-1"></i> 下载</button>
+                            <button class="action-btn"><i class="fas fa-star me-1"></i> 收藏</button>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <h3 class="result-title">微服务架构下的API网关设计</h3>
+                        <div class="result-meta">
+                            <span><i class="fas fa-language me-1"></i> TypeScript</span>
+                            <span><i class="fas fa-clock me-1"></i> 2023-05-28</span>
+                            <span><i class="fas fa-fire me-1"></i> 复杂度: 9/10</span>
+                        </div>
+                        <p class="result-description">介绍基于Node.js的API网关实现方案，涵盖认证授权、限流熔断、日志追踪等核心功能模块。适用于大型分布式系统。</p>
+                        <div class="result-tags">
+                            <span class="tag">微服务</span>
+                            <span class="tag">API网关</span>
+                            <span class="tag">Node.js</span>
+                            <span class="tag">分布式</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn"><i class="fas fa-eye me-1"></i> 查看</button>
+                            <button class="action-btn"><i class="fas fa-download me-1"></i> 下载</button>
+                            <button class="action-btn"><i class="fas fa-star me-1"></i> 收藏</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <nav aria-label="搜索结果分页">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">上一页</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.querySelector('.search-btn');
+            searchBtn.addEventListener('click', function() {
+                const searchInput = document.querySelector('.search-input');
+                if (searchInput.value.trim() !== '') {
+                    alert('搜索功能已触发，关键词: ' + searchInput.value);
+                }
+            });
+            const sortButtons = document.querySelectorAll('.sort-btn');
+            sortButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    sortButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            const tags = document.querySelectorAll('.tag');
+            tags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    console.log('标签点击:', this.textContent);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分享与导出 - 内容感知智能代码片段管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
+            --border-light: #e2e8f0;
+            --border-gray: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-link {
+            color: var(--text-gray);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+        }
+        .nav-link.active {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 3px;
+        }
+        .notification-badge {
+            position: relative;
+        }
+        .notification-badge .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .user-avatar:hover {
+            border-color: var(--primary-blue);
+            transform: scale(1.05);
+        }
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--primary-blue);
+        }
+        .feature-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .share-link-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+        .share-link-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+        .copy-button {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .copy-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .export-option {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .export-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+        .export-option.selected {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.05);
+        }
+        .export-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+        .batch-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+        }
+        @media (max-width: 768px) {
+            .navbar-nav {
+                flex-direction: column;
+            }
+            .feature-icon {
+                font-size: 2.5rem;
+            }
+            .export-option {
+                margin-bottom: 1rem;
+            }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-code"></i>
+                CodeAI Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="code-library.html">
+                            <i class="fas fa-folder"></i> 代码库
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="upload.html">
+                            <i class="fas fa-upload"></i> 上传/编辑
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="search.html">
+                            <i class="fas fa-search"></i> 搜索
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tags.html">
+                            <i class="fas fa-tags"></i> 标签管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="share-export.html">
+                            <i class="fas fa-share-alt"></i> 分享与导出
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.html">
+                            <i class="fas fa-user"></i> 个人资料
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="notification-badge">
+                        <a href="#" class="text-decoration-none text-dark">
+                            <i class="fas fa-bell fa-lg"></i>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                    <div class="dropdown user-dropdown">
+                        <img src="https://picsum.photos/seed/user123/100/100" alt="用户头像" class="user-avatar" data-bs-toggle="dropdown">
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> 设置</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle"></i> 帮助</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> 退出登录</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="display-5 fw-bold mb-2">分享与导出</h1>
+                    <p class="text-muted">轻松分享您的代码片段或导出为多种格式</p>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card">
+                        <h5 class="card-title">
+                            <i class="fas fa-link"></i>
+                            生成分享链接
+                        </h5>
+                        <p class="text-muted mb-3">创建可访问的分享链接，控制访问权限和有效期</p>
+                        <div class="share-link-card mb-3">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" value="https://codeai.example.com/share/abc123def456" readonly>
+                                <button class="btn copy-button" type="button">
+                                    <i class="fas fa-copy"></i> 复制链接
+                                </button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">访问权限</label>
+                                    <select class="form-select">
+                                        <option>公开访问</option>
+                                        <option>仅限成员</option>
+                                        <option>密码保护</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">有效期</label>
+                                    <select class="form-select">
+                                        <option>永久有效</option>
+                                        <option>7天</option>
+                                        <option>30天</option>
+                                        <option>自定义</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="allowDownload">
+                                <label class="form-check-label" for="allowDownload">
+                                    允许下载原始文件
+                                </label>
+                            </div>
+                            <button class="btn btn-primary w-100">
+                                <i class="fas fa-share-alt"></i> 生成分享链接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="dashboard-card">
+                        <h5 class="card-title">
+                            <i class="fas fa-download"></i>
+                            导出为格式
+                        </h5>
+                        <p class="text-muted mb-3">将代码片段导出为不同格式以满足各种需求</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="export-option selected" data-format="txt">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <h6>文本文件 (.txt)</h6>
+                                    <small class="text-muted">纯文本格式</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="export-option" data-format="json">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-code"></i>
+                                    </div>
+                                    <h6>JSON 格式</h6>
+                                    <small class="text-muted">结构化数据</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="export-option" data-format="pdf">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </div>
+                                    <h6>PDF 文档</h6>
+                                    <small class="text-muted">打印友好格式</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="export-option" data-format="zip">
+                                    <div class="export-icon">
+                                        <i class="fas fa-file-archive"></i>
+                                    </div>
+                                    <h6>压缩包 (.zip)</h6>
+                                    <small class="text-muted">打包所有文件</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h6 class="mb-3">选择导出范围</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="exportScope" id="allSnippets" checked>
+                                <label class="form-check-label" for="allSnippets">
+                                    全部代码片段
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="exportScope" id="selectedSnippets">
+                                <label class="form-check-label" for="selectedSnippets">
+                                    选中的代码片段
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="exportScope" id="taggedSnippets">
+                                <label class="form-check-label" for="taggedSnippets">
+                                    按标签筛选
+                                </label>
+                            </div>
+                            <button class="btn btn-success w-100">
+                                <i class="fas fa-file-download"></i> 开始导出
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <h5 class="card-title">
+                            <i class="fas fa-bolt"></i>
+                            批量操作
+                        </h5>
+                        <p class="text-muted mb-3">同时对多个代码片段执行分享或导出操作</p>
+                        <div class="batch-actions">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">选择操作</label>
+                                    <select class="form-select">
+                                        <option>导出为 PDF</option>
+                                        <option>导出为 ZIP</option>
+                                        <option>生成分享链接</option>
+                                        <option>复制代码到剪贴板</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">选择范围</label>
+                                    <select class="form-select">
+                                        <option>所有选中项</option>
+                                        <option>按标签分组</option>
+                                        <option>按语言分类</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-batch"></i> 执行批量操作
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" class="form-check-input"></th>
+                                            <th>代码片段</th>
+                                            <th>语言</th>
+                                            <th>标签</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="checkbox" class="form-check-input"></td>
+                                            <td>Python 数据处理脚本</td>
+                                            <td>Python</td>
+                                            <td><span class="badge bg-primary">数据分析</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-link"></i> 分享
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-download"></i> 导出
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox" class="form-check-input"></td>
+                                            <td>React 组件示例</td>
+                                            <td>JavaScript</td>
+                                            <td><span class="badge bg-warning">前端开发</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-link"></i> 分享
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-download"></i> 导出
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><input type="checkbox" class="form-check-input"></td>
+                                            <td>Java Web 服务</td>
+                                            <td>Java</td>
+                                            <td><span class="badge bg-danger">后端开发</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-link"></i> 分享
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-download"></i> 导出
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('.export-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.export-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+            });
+        });
+        document.querySelector('.copy-button').addEventListener('click', function() {
+            const input = this.parentElement.previousElementSibling;
+            input.select();
+            document.execCommand('copy');
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-check"></i> 已复制';
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 2000);
+        });
+        document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const row = this.closest('tr');
+                if (this.checked) {
+                    row.classList.add('table-active');
+                } else {
+                    row.classList.remove('table-active');
+                }
+            });
+        });
+        document.querySelector('thead input[type="checkbox"]').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                const row = checkbox.closest('tr');
+                if (this.checked) {
+                    row.classList.add('table-active');
+                } else {
+                    row.classList.remove('table-active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

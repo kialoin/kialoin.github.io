@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能知识管理系统 - 知识详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-medium: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: white !important;
+            background: var(--primary-gradient);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .content-display {
+            padding: 2rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        .content-display h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        .content-display p {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        .content-display ul, .content-display ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2rem;
+        }
+        .content-display li {
+            margin-bottom: 0.5rem;
+        }
+        .tag-manager {
+            padding: 1.5rem;
+        }
+        .tag-input {
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .tag-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .tag-badge {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .tag-badge .remove-tag {
+            margin-left: 0.5rem;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .tag-badge .remove-tag:hover {
+            opacity: 1;
+        }
+        .related-knowledge-item {
+            padding: 1rem;
+            border-radius: 10px;
+            background: var(--bg-light);
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+        .related-knowledge-item:hover {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-blue);
+        }
+        .related-knowledge-item h6 {
+            color: var(--primary-blue);
+            margin-bottom: 0.25rem;
+        }
+        .related-knowledge-item small {
+            color: var(--text-muted);
+        }
+        .version-history-item {
+            padding: 1rem;
+            border-left: 3px solid var(--border-light);
+            margin-bottom: 1rem;
+        }
+        .version-history-item.active {
+            border-left-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.05);
+        }
+        .version-history-item h6 {
+            margin-bottom: 0.25rem;
+        }
+        .version-history-item small {
+            color: var(--text-muted);
+        }
+        .crud-buttons {
+            padding: 1.5rem;
+            background: var(--bg-light);
+            border-top: 1px solid var(--border-light);
+        }
+        .btn-crud {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-right: 0.75rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .btn-save {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+        }
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        .btn-cancel {
+            background: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-medium);
+        }
+        .btn-cancel:hover {
+            background: var(--bg-medium);
+        }
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+        }
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        .editor-toolbar {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .editor-toolbar button {
+            background: white;
+            border: 1px solid var(--border-medium);
+            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
+            margin-right: 0.5rem;
+            color: var(--text-secondary);
+        }
+        .editor-toolbar button:hover {
+            background: var(--bg-medium);
+        }
+        .editor-content {
+            min-height: 300px;
+            padding: 1.5rem;
+            border: none;
+            resize: vertical;
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .content-display {
+                padding: 1.5rem;
+            }
+            .btn-crud {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i>智能知识管理
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-plus-circle me-1"></i>知识收集</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-list me-1"></i>知识管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-calendar-check me-1"></i>复习计划</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i>学习分析</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user-circle me-1"></i>个人中心</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-question-circle me-1"></i>帮助</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="position-relative me-3">
+                        <i class="fas fa-bell text-muted" style="font-size: 1.25rem; cursor: pointer;"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-avatar">张</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid px-4 py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="h3 mb-0">知识详情编辑</h1>
+                <p class="text-muted">查看和编辑您的知识片段</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card mb-4 fade-in-up">
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">机器学习中的决策树算法</h5>
+                            <button class="btn btn-sm btn-outline-primary" id="editToggle">
+                                <i class="fas fa-edit me-1"></i>编辑
+                            </button>
+                        </div>
+                    </div>
+                    <div class="content-display" id="contentDisplay">
+                        <h2>决策树算法详解</h2>
+                        <p>决策树是一种基本的分类与回归方法。在分类问题中，它可以认为是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布。</p>
+                        <h3>主要优点：</h3>
+                        <ul>
+                            <li>模型具有很好的可解释性，容易理解</li>
+                            <li>分类速度快，预测效率高</li>
+                            <li>能够同时处理数值型和分类型数据</li>
+                            <li>不需要对数据进行复杂的预处理</li>
+                        </ul>
+                        <h3>核心算法：</h3>
+                        <ol>
+                            <li>ID3算法：使用信息增益作为选择特征的标准</li>
+                            <li>C4.5算法：使用信息增益比作为选择特征的标准</li>
+                            <li>CART算法：使用基尼系数作为选择特征的标准</li>
+                        </ol>
+                        <p>在实际应用中，决策树经常与其他算法结合形成集成学习方法，如随机森林和梯度提升树等，以提高模型的泛化能力。</p>
+                    </div>
+                    <div id="editorSection" style="display: none;">
+                        <div class="editor-toolbar">
+                            <button title="加粗"><i class="fas fa-bold"></i></button>
+                            <button title="斜体"><i class="fas fa-italic"></i></button>
+                            <button title="下划线"><i class="fas fa-underline"></i></button>
+                            <button title="标题"><i class="fas fa-heading"></i></button>
+                            <button title="列表"><i class="fas fa-list-ul"></i></button>
+                            <button title="编号列表"><i class="fas fa-list-ol"></i></button>
+                            <button title="链接"><i class="fas fa-link"></i></button>
+                        </div>
+                        <textarea class="editor-content" id="contentEditor">决策树算法详解
+决策树是一种基本的分类与回归方法。在分类问题中，它可以认为是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布。
+主要优点：
+- 模型具有很好的可解释性，容易理解
+- 分类速度快，预测效率高
+- 能够同时处理数值型和分类型数据
+- 不需要对数据进行复杂的预处理
+核心算法：
+1. ID3算法：使用信息增益作为选择特征的标准
+2. C4.5算法：使用信息增益比作为选择特征的标准
+3. CART算法：使用基尼系数作为选择特征的标准
+在实际应用中，决策树经常与其他算法结合形成集成学习方法，如随机森林和梯度提升树等，以提高模型的泛化能力。</textarea>
+                    </div>
+                </div>
+                <div class="card fade-in-up">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">标签管理</h5>
+                    </div>
+                    <div class="tag-manager">
+                        <div class="mb-3">
+                            <label class="form-label">添加新标签</label>
+                            <input type="text" class="form-control tag-input" id="tagInput" placeholder="输入标签名称，按回车添加">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">已添加标签</label>
+                            <div id="tagContainer">
+                                <span class="tag-badge">机器学习 <span class="remove-tag">&times;</span></span>
+                                <span class="tag-badge">算法 <span class="remove-tag">&times;</span></span>
+                                <span class="tag-badge">决策树 <span class="remove-tag">&times;</span></span>
+                                <span class="tag-badge">分类算法 <span class="remove-tag">&times;</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-4 fade-in-up">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">关联知识推荐</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="related-knowledge-item">
+                            <h6>随机森林算法原理</h6>
+                            <small>基于多个决策树的集成学习方法</small>
+                        </div>
+                        <div class="related-knowledge-item">
+                            <h6>支持向量机SVM详解</h6>
+                            <small>另一种重要的分类算法</small>
+                        </div>
+                        <div class="related-knowledge-item">
+                            <h6>信息熵与信息增益计算</h6>
+                            <small>决策树分裂标准的数学基础</small>
+                        </div>
+                        <div class="related-knowledge-item">
+                            <h6>基尼系数在CART中的应用</h6>
+                            <small>决策树节点纯度的衡量标准</small>
+                        </div>
+                        <div class="related-knowledge-item">
+                            <h6>过拟合与剪枝技术</h6>
+                            <small>提高决策树泛化能力的方法</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card fade-in-up">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">版本历史</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="version-history-item active">
+                            <h6>版本 5 <span class="badge bg-primary ms-2">当前</span></h6>
+                            <small>2023-06-15 14:30 | 张同学</small>
+                            <p class="mt-2 mb-0">完善了算法优缺点的描述</p>
+                        </div>
+                        <div class="version-history-item">
+                            <h6>版本 4</h6>
+                            <small>2023-06-10 09:15 | 张同学</small>
+                            <p class="mt-2 mb-0">补充了核心算法部分的内容</p>
+                        </div>
+                        <div class="version-history-item">
+                            <h6>版本 3</h6>
+                            <small>2023-05-28 16:45 | 张同学</small>
+                            <p class="mt-2 mb-0">修正了ID3算法的描述错误</p>
+                        </div>
+                        <div class="version-history-item">
+                            <h6>版本 2</h6>
+                            <small>2023-05-15 11:20 | 张同学</small>
+                            <p class="mt-2 mb-0">增加了实际应用场景说明</p>
+                        </div>
+                        <div class="version-history-item">
+                            <h6>版本 1</h6>
+                            <small>2023-05-01 10:00 | 张同学</small>
+                            <p class="mt-2 mb-0">初始创建</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card crud-buttons fade-in-up">
+            <div class="d-flex flex-wrap">
+                <button class="btn btn-crud btn-save">
+                    <i class="fas fa-save me-2"></i>保存更改
+                </button>
+                <button class="btn btn-crud btn-cancel">
+                    <i class="fas fa-times me-2"></i>取消编辑
+                </button>
+                <button class="btn btn-crud btn-outline-primary">
+                    <i class="fas fa-copy me-2"></i>创建副本
+                </button>
+                <button class="btn btn-crud btn-delete ms-auto">
+                    <i class="fas fa-trash me-2"></i>删除知识
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('editToggle').addEventListener('click', function() {
+            const contentDisplay = document.getElementById('contentDisplay');
+            const editorSection = document.getElementById('editorSection');
+            const editButton = this;
+            if (editorSection.style.display === 'none') {
+                contentDisplay.style.display = 'none';
+                editorSection.style.display = 'block';
+                editButton.innerHTML = '<i class="fas fa-eye me-1"></i>预览';
+            } else {
+                contentDisplay.style.display = 'block';
+                editorSection.style.display = 'none';
+                editButton.innerHTML = '<i class="fas fa-edit me-1"></i>编辑';
+            }
+        });
+        document.getElementById('tagInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                const tagContainer = document.getElementById('tagContainer');
+                const newTag = document.createElement('span');
+                newTag.className = 'tag-badge';
+                newTag.innerHTML = this.value.trim() + ' <span class="remove-tag">&times;</span>';
+                tagContainer.appendChild(newTag);
+                this.value = '';
+                newTag.querySelector('.remove-tag').addEventListener('click', function() {
+                    newTag.remove();
+                });
+            }
+        });
+        document.querySelectorAll('.remove-tag').forEach(function(element) {
+            element.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+        window.addEventListener('load', function() {
+            const elements = document.querySelectorAll('.fade-in-up');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }, index * 100);
+            });
+        });
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.12)';
+            } else {
+                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.08)';
+            }
+        });
+    </script>
+</body>
+</html>

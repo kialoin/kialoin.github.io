@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能知识管理系统 - 复习计划</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-medium: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem !important;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: white !important;
+            background: var(--primary-gradient);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .stat-card {
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: var(--primary-gradient);
+            opacity: 0.05;
+            border-radius: 50%;
+            transition: all 0.5s ease;
+        }
+        .stat-card:hover::before {
+            top: -30%;
+            right: -30%;
+        }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .stat-icon.blue {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .stat-icon.green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .stat-icon.orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .welcome-section {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        .welcome-section h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .welcome-section p {
+            opacity: 0.9;
+            margin: 0;
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 15px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .quick-action-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .timeline {
+            position: relative;
+            padding: 1rem 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-light);
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 1.5rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--primary-blue);
+        }
+        .timeline-time {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-content {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            padding: 1rem;
+        }
+        @media (max-width: 768px) {
+            .stat-number {
+                font-size: 2rem;
+            }
+            .quick-action-btn {
+                padding: 1rem;
+            }
+            .welcome-section {
+                padding: 1.5rem;
+            }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .priority-high {
+            color: var(--error-red);
+        }
+        .priority-medium {
+            color: var(--warning-orange);
+        }
+        .priority-low {
+            color: var(--success-green);
+        }
+        .review-task {
+            border-left: 3px solid var(--primary-blue);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 0 8px 8px 0;
+        }
+        .review-task.high {
+            border-left-color: var(--error-red);
+        }
+        .review-task.medium {
+            border-left-color: var(--warning-orange);
+        }
+        .review-task.low {
+            border-left-color: var(--success-green);
+        }
+        .adjust-control {
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .calendar-day {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .calendar-day:hover {
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .calendar-day.active {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .calendar-day.has-tasks {
+            position: relative;
+        }
+        .calendar-day.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            background: var(--error-red);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-brain me-2"></i>智能知识管理
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-plus-circle me-1"></i>知识收集</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-list me-1"></i>知识管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-calendar-check me-1"></i>复习计划</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i>学习分析</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-user-circle me-1"></i>个人中心</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-question-circle me-1"></i>帮助</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="position-relative me-3">
+                        <i class="fas fa-bell text-muted" style="font-size: 1.25rem; cursor: pointer;"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="user-avatar">张</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid px-4 py-4">
+        <div class="welcome-section fade-in-up">
+            <h1>个性化复习计划</h1>
+            <p>基于间隔重复算法为您生成的专属复习计划，助您高效巩固知识</p>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card stat-card fade-in-up">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">今日任务</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card stat-card fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">高优先级</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card stat-card fade-in-up" style="animation-delay: 0.2s;">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number">16</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card stat-card fade-in-up" style="animation-delay: 0.3s;">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number">7</div>
+                    <div class="stat-label">连续复习天数</div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card mb-4 fade-in-up">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-stream me-2"></i>复习时间轴
+                        </h5>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-time">今天 09:00</div>
+                                <div class="timeline-content">
+                                    <strong>机器学习基础</strong> - 复习概念理解
+                                    <div class="mt-1">
+                                        <span class="badge bg-danger">高优先级</span>
+                                        <span class="badge bg-primary">遗忘曲线预警</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-time">今天 11:30</div>
+                                <div class="timeline-content">
+                                    <strong>数据结构与算法</strong> - 二叉树遍历方法
+                                    <div class="mt-1">
+                                        <span class="badge bg-warning">中优先级</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-time">明天 14:00</div>
+                                <div class="timeline-content">
+                                    <strong>Python编程</strong> - 装饰器原理与应用
+                                    <div class="mt-1">
+                                        <span class="badge bg-success">低优先级</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-time">后天 10:00</div>
+                                <div class="timeline-content">
+                                    <strong>数据库原理</strong> - 事务隔离级别详解
+                                    <div class="mt-1">
+                                        <span class="badge bg-warning">中优先级</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-time">3天后 15:30</div>
+                                <div class="timeline-content">
+                                    <strong>操作系统</strong> - 进程调度算法比较
+                                    <div class="mt-1">
+                                        <span class="badge bg-danger">高优先级</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="card fade-in-up">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list-check me-2"></i>今日复习任务 (24项)
+                            </h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-sync-alt me-1"></i>刷新计划
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <button class="btn btn-sm btn-outline-secondary me-2">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="d-flex">
+                                <div class="calendar-day active">15<br><small>今天</small></div>
+                                <div class="calendar-day has-tasks mx-1">16<br><small>周四</small></div>
+                                <div class="calendar-day mx-1">17<br><small>周五</small></div>
+                                <div class="calendar-day has-tasks mx-1">18<br><small>周六</small></div>
+                                <div class="calendar-day mx-1">19<br><small>周日</small></div>
+                                <div class="calendar-day mx-1">20<br><small>周一</small></div>
+                                <div class="calendar-day mx-1">21<br><small>周二</small></div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-2">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-danger d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle me-2"></i>高优先级任务 (8项)
+                            </h6>
+                            <div class="review-task high">
+                                <div class="d-flex justify-content-between">
+                                    <strong>机器学习基础 - 监督学习与无监督学习的区别</strong>
+                                    <div>
+                                        <span class="badge bg-danger">遗忘风险高</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">上次复习: 3天前 | 预计用时: 15分钟</small>
+                                </div>
+                                <div class="adjust-control">
+                                    <div class="d-flex align-items-center">
+                                        <small class="me-2">调整复习时间:</small>
+                                        <input type="time" class="form-control form-control-sm me-2" style="width: auto;" value="09:00">
+                                        <button class="btn btn-sm btn-outline-primary">确认</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-task high">
+                                <div class="d-flex justify-content-between">
+                                    <strong>数据结构 - 哈希表冲突解决方法</strong>
+                                    <div>
+                                        <span class="badge bg-danger">重要考点</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">上次复习: 2天前 | 预计用时: 20分钟</small>
+                                </div>
+                                <div class="adjust-control">
+                                    <div class="d-flex align-items-center">
+                                        <small class="me-2">调整复习时间:</small>
+                                        <input type="time" class="form-control form-control-sm me-2" style="width: auto;" value="11:30">
+                                        <button class="btn btn-sm btn-outline-primary">确认</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-warning d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>中优先级任务 (10项)
+                            </h6>
+                            <div class="review-task medium">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Python编程 - 生成器与迭代器的区别</strong>
+                                    <div>
+                                        <span class="badge bg-warning">需加强记忆</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">上次复习: 5天前 | 预计用时: 10分钟</small>
+                                </div>
+                                <div class="adjust-control">
+                                    <div class="d-flex align-items-center">
+                                        <small class="me-2">调整复习时间:</small>
+                                        <input type="time" class="form-control form-control-sm me-2" style="width: auto;" value="14:00">
+                                        <button class="btn btn-sm btn-outline-primary">确认</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h6 class="text-success d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>低优先级任务 (6项)
+                            </h6>
+                            <div class="review-task low">
+                                <div class="d-flex justify-content-between">
+                                    <strong>英语词汇 - 计算机专业术语</strong>
+                                    <div>
+                                        <span class="badge bg-success">记忆稳定</span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">上次复习: 1周前 | 预计用时: 8分钟</small>
+                                </div>
+                                <div class="adjust-control">
+                                    <div class="d-flex align-items-center">
+                                        <small class="me-2">调整复习时间:</small>
+                                        <input type="time" class="form-control form-control-sm me-2" style="width: auto;" value="16:30">
+                                        <button class="btn btn-sm btn-outline-primary">确认</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>添加自定义复习任务
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            const elements = document.querySelectorAll('.fade-in-up');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                }, index * 100);
+            });
+        });
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.12)';
+            } else {
+                navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.08)';
+            }
+        });
+        document.querySelectorAll('.calendar-day').forEach(day => {
+            day.addEventListener('click', function() {
+                document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

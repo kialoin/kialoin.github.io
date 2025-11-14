@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索结果 - 内容感知智能代码片段管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
+            --border-light: #e2e8f0;
+            --border-gray: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-link {
+            color: var(--text-gray);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+        }
+        .nav-link.active {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 3px;
+        }
+        .notification-badge {
+            position: relative;
+        }
+        .notification-badge .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .user-avatar:hover {
+            border-color: var(--primary-blue);
+            transform: scale(1.05);
+        }
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--primary-blue);
+        }
+        .search-result-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+        .search-result-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .result-preview {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            background: var(--bg-gray);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 120px;
+            position: relative;
+        }
+        .result-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to bottom, transparent, white);
+        }
+        .result-tags {
+            margin-bottom: 1rem;
+        }
+        .result-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-blue);
+        }
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        .match-score {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .view-btn {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-blue);
+        }
+        .view-btn:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+        .favorite-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+        }
+        .favorite-btn:hover {
+            background: var(--error-red);
+            color: white;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .pagination {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .page-item.active .page-link {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        .page-link {
+            border-radius: 8px;
+            margin: 0 0.25rem;
+            padding: 0.5rem 1rem;
+            color: var(--text-gray);
+            border: 1px solid var(--border-light);
+        }
+        .page-link:hover {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        .sort-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .sort-selector select {
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            background: white;
+            color: var(--text-dark);
+        }
+        @media (max-width: 768px) {
+            .result-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .action-buttons {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-code"></i>
+                CodeAI Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="code-library.html">
+                            <i class="fas fa-folder"></i> 代码库
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="upload.html">
+                            <i class="fas fa-upload"></i> 上传/编辑
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="search.html">
+                            <i class="fas fa-search"></i> 搜索
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tags.html">
+                            <i class="fas fa-tags"></i> 标签管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.html">
+                            <i class="fas fa-user"></i> 个人资料
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="notification-badge">
+                        <a href="#" class="text-decoration-none text-dark">
+                            <i class="fas fa-bell fa-lg"></i>
+                            <span class="badge">3</span>
+                        </a>
+                    </div>
+                    <div class="dropdown user-dropdown">
+                        <img src="https://picsum.photos/seed/user123/100/100" alt="用户头像" class="user-avatar" data-bs-toggle="dropdown">
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> 设置</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-question-circle"></i> 帮助</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> 退出登录</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="display-5 fw-bold mb-2">搜索结果</h1>
+                    <p class="text-muted">共找到 24 个相关代码片段</p>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" placeholder="输入关键词搜索..." value="Python">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="sort-selector">
+                                    <span>排序方式:</span>
+                                    <select>
+                                        <option>匹配度优先</option>
+                                        <option>最近更新</option>
+                                        <option>收藏最多</option>
+                                        <option>评分最高</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <div class="search-results">
+                            <div class="search-result-item">
+                                <h4 class="result-title">
+                                    <i class="fas fa-code"></i>
+                                    Python 数据处理脚本
+                                </h4>
+                                <div class="result-preview">
+                                    这是一个用于处理CSV数据的Python脚本，包含了数据清洗、转换和可视化功能。使用pandas库进行数据分析，matplotlib进行图表绘制。
+                                </div>
+                                <div class="result-tags">
+                                    <span class="result-tag">Python</span>
+                                    <span class="result-tag">数据处理</span>
+                                    <span class="result-tag">pandas</span>
+                                    <span class="result-tag">CSV</span>
+                                </div>
+                                <div class="result-meta">
+                                    <div>
+                                        <span class="match-score">匹配度: 98%</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view-btn">
+                                            <i class="fas fa-eye"></i> 查看详情
+                                        </button>
+                                        <button class="action-btn favorite-btn">
+                                            <i class="fas fa-heart"></i> 收藏
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="search-result-item">
+                                <h4 class="result-title">
+                                    <i class="fas fa-code"></i>
+                                    Django REST API 项目模板
+                                </h4>
+                                <div class="result-preview">
+                                    基于Django框架的REST API项目模板，包含用户认证、权限控制、序列化等功能模块。适合快速搭建后端服务。
+                                </div>
+                                <div class="result-tags">
+                                    <span class="result-tag">Python</span>
+                                    <span class="result-tag">Django</span>
+                                    <span class="result-tag">REST API</span>
+                                    <span class="result-tag">后端</span>
+                                </div>
+                                <div class="result-meta">
+                                    <div>
+                                        <span class="match-score">匹配度: 95%</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view-btn">
+                                            <i class="fas fa-eye"></i> 查看详情
+                                        </button>
+                                        <button class="action-btn favorite-btn">
+                                            <i class="fas fa-heart"></i> 收藏
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="search-result-item">
+                                <h4 class="result-title">
+                                    <i class="fas fa-code"></i>
+                                    TensorFlow 图像分类模型
+                                </h4>
+                                <div class="result-preview">
+                                    使用TensorFlow构建的图像分类模型，支持多种预训练模型如ResNet、VGG等。包含训练、验证和推理完整的流程。
+                                </div>
+                                <div class="result-tags">
+                                    <span class="result-tag">Python</span>
+                                    <span class="result-tag">TensorFlow</span>
+                                    <span class="result-tag">机器学习</span>
+                                    <span class="result-tag">图像识别</span>
+                                </div>
+                                <div class="result-meta">
+                                    <div>
+                                        <span class="match-score">匹配度: 92%</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view-btn">
+                                            <i class="fas fa-eye"></i> 查看详情
+                                        </button>
+                                        <button class="action-btn favorite-btn">
+                                            <i class="fas fa-heart"></i> 收藏
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="search-result-item">
+                                <h4 class="result-title">
+                                    <i class="fas fa-code"></i>
+                                    React Hooks 实用工具集
+                                </h4>
+                                <div class="result-preview">
+                                    一套基于React Hooks的实用工具集合，包括useLocalStorage、useDebounce、useFetch等自定义Hook，提升开发效率。
+                                </div>
+                                <div class="result-tags">
+                                    <span class="result-tag">JavaScript</span>
+                                    <span class="result-tag">React</span>
+                                    <span class="result-tag">Hooks</span>
+                                    <span class="result-tag">前端</span>
+                                </div>
+                                <div class="result-meta">
+                                    <div>
+                                        <span class="match-score">匹配度: 89%</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view-btn">
+                                            <i class="fas fa-eye"></i> 查看详情
+                                        </button>
+                                        <button class="action-btn favorite-btn">
+                                            <i class="fas fa-heart"></i> 收藏
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="search-result-item">
+                                <h4 class="result-title">
+                                    <i class="fas fa-code"></i>
+                                    Node.js 微服务架构示例
+                                </h4>
+                                <div class="result-preview">
+                                    基于Node.js的微服务架构示例项目，使用Express框架实现服务拆分，并集成JWT认证和负载均衡机制。
+                                </div>
+                                <div class="result-tags">
+                                    <span class="result-tag">JavaScript</span>
+                                    <span class="result-tag">Node.js</span>
+                                    <span class="result-tag">微服务</span>
+                                    <span class="result-tag">架构</span>
+                                </div>
+                                <div class="result-meta">
+                                    <div>
+                                        <span class="match-score">匹配度: 87%</span>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view-btn">
+                                            <i class="fas fa-eye"></i> 查看详情
+                                        </button>
+                                        <button class="action-btn favorite-btn">
+                                            <i class="fas fa-heart"></i> 收藏
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pagination-container">
+                            <nav aria-label="搜索结果分页">
+                                <ul class="pagination">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">上一页</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('.favorite-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('fa-heart')) {
+                    icon.classList.remove('fa-heart');
+                    icon.classList.add('fa-solid', 'fa-heart');
+                    this.innerHTML = '<i class="fas fa-solid fa-heart"></i> 已收藏';
+                    this.classList.remove('favorite-btn');
+                    this.classList.add('btn-success');
+                } else {
+                    icon.classList.remove('fa-solid', 'fa-heart');
+                    icon.classList.add('fa-heart');
+                    this.innerHTML = '<i class="fas fa-heart"></i> 收藏';
+                    this.classList.remove('btn-success');
+                    this.classList.add('favorite-btn');
+                }
+            });
+        });
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

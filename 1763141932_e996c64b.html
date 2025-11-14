@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可视化图表展示 - 智能用户行为分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-secondary: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .dropdown-menu {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+        }
+        .filter-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+        .filter-select {
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .filter-select:hover {
+            border-color: var(--secondary-blue);
+        }
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 400px;
+        }
+        .chart-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chart-action-btn {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chart-action-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+            border-color: var(--secondary-blue);
+        }
+        .sidebar {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 350px;
+            height: calc(100vh - 80px);
+            background: white;
+            border-radius: 20px 0 0 20px;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .sidebar.active {
+            right: 0;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+        .sidebar-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .chart-type-card {
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .chart-type-card:hover {
+            border-color: var(--secondary-blue);
+            background: var(--bg-secondary);
+        }
+        .chart-type-card.active {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .chart-type-icon {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+        .chart-type-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-light);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 997;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        .main-content {
+            padding: 2rem;
+            margin-bottom: 60px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            .filter-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .status-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-light);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>智能行为分析系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-tachometer-alt me-1"></i>仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-database me-1"></i>数据管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="data-collection.html">数据采集配置</a></li>
+                            <li><a class="dropdown-item" href="data-preprocessing.html">数据预处理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-brain me-1"></i>智能分析
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="analysis-config.html">分析配置</a></li>
+                            <li><a class="dropdown-item active" href="visualization.html">可视化中心</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-file-alt me-1"></i>报告系统
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="report-generation.html">报告生成</a></li>
+                            <li><a class="dropdown-item" href="custom-view.html">自定义视图</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="monitoring.html">
+                            <i class="fas fa-bell me-1"></i>监控警报
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cogs me-1"></i>系统管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="user-management.html">用户权限</a></li>
+                            <li><a class="dropdown-item" href="system-settings.html">系统设置</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="workspace.html">
+                            <i class="fas fa-user me-1"></i>个人中心
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content">
+        <div class="filter-section">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label">时间范围:</label>
+                        <select class="filter-select" id="timeRange">
+                            <option value="today">今日</option>
+                            <option value="7days" selected>近7天</option>
+                            <option value="30days">近30天</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label">数据维度:</label>
+                        <select class="filter-select" id="dataDimension">
+                            <option value="visit-depth">访问深度</option>
+                            <option value="stay-time" selected>停留时长</option>
+                            <option value="conversion-rate">转化率</option>
+                            <option value="bounce-rate">跳出率</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label">用户群体:</label>
+                        <select class="filter-select" id="userGroup">
+                            <option value="all">全部用户</option>
+                            <option value="new">新用户</option>
+                            <option value="returning">回访用户</option>
+                            <option value="vip">VIP用户</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" style="background: var(--primary-gradient); border: none; border-radius: 10px;">
+                        <i class="fas fa-sync-alt me-2"></i>刷新数据
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-chart-line text-primary me-2"></i>用户访问趋势
+                        </h5>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" onclick="exportChart('lineChart')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="chart-action-btn" onclick="fullscreenChart('lineChart')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-chart-bar text-success me-2"></i>页面访问分布
+                        </h5>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" onclick="exportChart('barChart')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="chart-action-btn" onclick="fullscreenChart('barChart')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-braille text-warning me-2"></i>用户行为关联
+                        </h5>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" onclick="exportChart('scatterChart')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="chart-action-btn" onclick="fullscreenChart('scatterChart')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="scatterChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-chart-pie text-info me-2"></i>设备类型分布
+                        </h5>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" onclick="exportChart('pieChart')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="chart-action-btn" onclick="fullscreenChart('pieChart')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-spider text-purple me-2"></i>用户画像分析
+                        </h5>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" onclick="exportChart('radarChart')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="chart-action-btn" onclick="fullscreenChart('radarChart')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h5 class="chart-title">
+                            <i class="fas fa-filter text-danger me-2"></i>转化漏斗分析
+                        </h5>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" onclick="exportChart('funnelChart')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="chart-action-btn" onclick="fullscreenChart('funnelChart')">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="funnelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-cog"></i>
+    </button>
+    <div class="sidebar" id="sidebar">
+        <h5 class="sidebar-header">
+            <i class="fas fa-chart-pie me-2"></i>图表管理
+        </h5>
+        <div class="chart-type-grid">
+            <div class="chart-type-card" onclick="selectChartType('line')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="chart-type-name">折线图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('bar')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="chart-type-name">柱状图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('pie')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="chart-type-name">饼图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('scatter')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-braille"></i>
+                </div>
+                <div class="chart-type-name">散点图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('radar')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-spider"></i>
+                </div>
+                <div class="chart-type-name">雷达图</div>
+            </div>
+            <div class="chart-type-card" onclick="selectChartType('funnel')">
+                <div class="chart-type-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="chart-type-name">漏斗图</div>
+            </div>
+        </div>
+        <h6 class="mb-3">数据源配置</h6>
+        <div class="mb-3">
+            <label class="form-label">选择数据表</label>
+            <select class="form-select">
+                <option>用户行为日志</option>
+                <option>页面访问记录</option>
+                <option>转化事件数据</option>
+                <option>用户属性信息</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">聚合方式</label>
+            <select class="form-select">
+                <option>按小时</option>
+                <option>按天</option>
+                <option>按周</option>
+                <option>按月</option>
+            </select>
+        </div>
+        <button class="btn btn-primary w-100 mt-3" style="background: var(--primary-gradient); border: none;">
+            <i class="fas fa-plus me-2"></i>添加新图表
+        </button>
+    </div>
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-indicator"></span>
+            <span>系统运行正常</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-clock me-1"></i>
+            <span>最后更新: <span id="lastUpdate">刚刚</span></span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-database me-1"></i>
+            <span>数据量: 1,234,567 条</span>
+        </div>
+        <div class="status-item">
+            <i class="fas fa-users me-1"></i>
+            <span>在线用户: 234</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const chartColors = {
+            primary: 'rgba(79, 70, 229, 0.8)',
+            secondary: 'rgba(99, 102, 241, 0.8)',
+            success: 'rgba(16, 185, 129, 0.8)',
+            warning: 'rgba(245, 158, 11, 0.8)',
+            danger: 'rgba(239, 68, 68, 0.8)',
+            info: 'rgba(6, 182, 212, 0.8)',
+            purple: 'rgba(139, 92, 246, 0.8)'
+        };
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                datasets: [{
+                    label: '访问量',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                    borderColor: chartColors.primary,
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: '独立访客',
+                    data: [8000, 12000, 10000, 17000, 15000, 20000, 18000],
+                    borderColor: chartColors.secondary,
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        const barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['首页', '产品页', '关于我们', '博客', '联系我们', '帮助中心'],
+                datasets: [{
+                    label: '页面浏览量',
+                    data: [45000, 38000, 12000, 25000, 8000, 15000],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.success,
+                        chartColors.warning,
+                        chartColors.danger,
+                        chartColors.info
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+        const scatterChart = new Chart(scatterCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: '用户行为',
+                    data: Array.from({length: 50}, () => ({
+                        x: Math.random() * 100,
+                        y: Math.random() * 100
+                    })),
+                    backgroundColor: chartColors.purple
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '访问时长(分钟)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '页面浏览数'
+                        }
+                    }
+                }
+            }
+        });
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['桌面端', '移动端', '平板', '其他'],
+                datasets: [{
+                    data: [45, 35, 15, 5],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.success,
+                        chartColors.warning,
+                        chartColors.info
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        const radarChart = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['活跃度', '忠诚度', '购买力', '影响力', '满意度', '参与度'],
+                datasets: [{
+                    label: '用户群体A',
+                    data: [85, 70, 90, 60, 75, 80],
+                    borderColor: chartColors.primary,
+                    backgroundColor: 'rgba(79, 70, 229, 0.2)'
+                }, {
+                    label: '用户群体B',
+                    data: [60, 85, 70, 80, 65, 75],
+                    borderColor: chartColors.success,
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+        const funnelCtx = document.getElementById('funnelChart').getContext('2d');
+        const funnelChart = new Chart(funnelCtx, {
+            type: 'bar',
+            data: {
+                labels: ['访问', '注册', '激活', '留存', '付费'],
+                datasets: [{
+                    label: '转化人数',
+                    data: [10000, 6000, 4000, 2500, 1000],
+                    backgroundColor: [
+                        'rgba(79, 70, 229, 0.8)',
+                        'rgba(99, 102, 241, 0.7)',
+                        'rgba(139, 92, 246, 0.6)',
+                        'rgba(167, 139, 250, 0.5)',
+                        'rgba(196, 181, 253, 0.4)'
+                    ]
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        function selectChartType(type) {
+            document.querySelectorAll('.chart-type-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            console.log('Selected chart type:', type);
+        }
+        function exportChart(chartId) {
+            const canvas = document.getElementById(chartId);
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = chartId + '.png';
+            link.href = url;
+            link.click();
+        }
+        function fullscreenChart(chartId) {
+            const chartContainer = document.getElementById(chartId).closest('.chart-container');
+            if (chartContainer.requestFullscreen) {
+                chartContainer.requestFullscreen();
+            }
+        }
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN');
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        setInterval(() => {
+            lineChart.data.datasets[0].data = lineChart.data.datasets[0].data.map(val => 
+                val + (Math.random() - 0.5) * 1000
+            );
+            lineChart.update();
+            updateTime();
+        }, 5000);
+        document.getElementById('timeRange').addEventListener('change', function() {
+            console.log('Time range changed:', this.value);
+        });
+        document.getElementById('dataDimension').addEventListener('change', function() {
+            console.log('Data dimension changed:', this.value);
+        });
+        document.getElementById('userGroup').addEventListener('change', function() {
+            console.log('User group changed:', this.value);
+        });
+        updateTime();
+    </script>
+</body>
+</html>

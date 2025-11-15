@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置与集成配置 - 缺陷预测系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-card: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: white;
+            background: var(--primary-gradient);
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--accent-purple);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+        .stat-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+        }
+        .stat-card.primary {
+            border-left-color: var(--primary-blue);
+        }
+        .stat-card.success {
+            border-left-color: var(--success-green);
+        }
+        .stat-card.warning {
+            border-left-color: var(--warning-orange);
+        }
+        .stat-card.danger {
+            border-left-color: var(--error-red);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+        .stat-change.up {
+            color: var(--success-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .stat-change.down {
+            color: var(--error-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .task-item:hover {
+            background: var(--bg-card);
+            transform: translateX(5px);
+        }
+        .task-priority {
+            width: 4px;
+            height: 40px;
+            border-radius: 2px;
+            margin-right: 1rem;
+        }
+        .task-priority.high {
+            background: var(--error-red);
+        }
+        .task-priority.medium {
+            background: var(--warning-orange);
+        }
+        .task-priority.low {
+            background: var(--success-green);
+        }
+        .notification-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+            transition: all 0.3s ease;
+        }
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .notification-item.error {
+            border-left-color: var(--error-red);
+        }
+        .notification-item.warning {
+            border-left-color: var(--warning-orange);
+        }
+        .notification-item.info {
+            border-left-color: var(--primary-blue);
+        }
+        .resource-bar {
+            height: 8px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .resource-progress {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .resource-progress.normal {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        .resource-progress.warning {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+        .resource-progress.danger {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+        @media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 1rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .quick-action-btn {
+                padding: 1rem;
+            }
+            .quick-action-btn i {
+                font-size: 1.5rem;
+            }
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>缺陷预测系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-database me-1"></i>数据管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-brain me-1"></i>模型管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-bug me-1"></i>预测中心</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-pie me-1"></i>分析报告</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-cog me-1"></i>系统管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid px-4 py-4">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-cogs"></i>
+                        系统设置与集成配置
+                    </div>
+                    <div class="mb-5">
+                        <h5 class="mb-3"><i class="fab fa-weixin text-success me-2"></i>企业微信集成设置</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Webhook URL</label>
+                                <input type="url" class="form-control" placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">API密钥</label>
+                                <input type="password" class="form-control" placeholder="请输入API密钥">
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-outline-primary">
+                                    <i class="fas fa-sync-alt me-1"></i>测试连接
+                                </button>
+                                <button class="btn btn-success ms-2">
+                                    <i class="fas fa-save me-1"></i>保存配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <h5 class="mb-3"><i class="fas fa-database text-primary me-2"></i>数据库连接参数</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">主机地址</label>
+                                <input type="text" class="form-control" value="localhost">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">端口</label>
+                                <input type="number" class="form-control" value="5432">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">数据库名称</label>
+                                <input type="text" class="form-control" value="defect_prediction">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">用户名</label>
+                                <input type="text" class="form-control" value="admin">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">密码</label>
+                                <input type="password" class="form-control" value="********">
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-outline-primary">
+                                    <i class="fas fa-sync-alt me-1"></i>测试连接
+                                </button>
+                                <button class="btn btn-success ms-2">
+                                    <i class="fas fa-save me-1"></i>保存配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <h5 class="mb-3"><i class="fas fa-hdd text-warning me-2"></i>缓存策略配置</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">缓存类型</label>
+                                <select class="form-select">
+                                    <option>Redis</option>
+                                    <option>Memcached</option>
+                                    <option>本地文件</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">缓存过期时间(秒)</label>
+                                <input type="number" class="form-control" value="3600">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">最大缓存大小(MB)</label>
+                                <input type="number" class="form-control" value="1024">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">缓存刷新间隔(分钟)</label>
+                                <input type="number" class="form-control" value="10">
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i>保存配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 class="mb-3"><i class="fas fa-plug text-info me-2"></i>第三方服务集成</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="fab fa-jira text-danger me-2"></i>JIRA API</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label small">API URL</label>
+                                            <input type="url" class="form-control form-control-sm" placeholder="https://your-domain.atlassian.net">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">API Token</label>
+                                            <input type="password" class="form-control form-control-sm" placeholder="输入API Token">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">用户名</label>
+                                            <input type="text" class="form-control form-control-sm" placeholder="邮箱地址">
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-check me-1"></i>测试连接
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="fab fa-git-alt text-dark me-2"></i>Git API</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label small">API URL</label>
+                                            <input type="url" class="form-control form-control-sm" placeholder="https://api.github.com">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Personal Access Token</label>
+                                            <input type="password" class="form-control form-control-sm" placeholder="输入Token">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">用户名</label>
+                                            <input type="text" class="form-control form-control-sm" placeholder="用户名">
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-check me-1"></i>测试连接
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mt-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        集成状态监控
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>服务名称</th>
+                                    <th>状态</th>
+                                    <th>最后检查时间</th>
+                                    <th>响应时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>企业微信</td>
+                                    <td><span class="badge bg-success">正常</span></td>
+                                    <td>2023-06-15 14:30:22</td>
+                                    <td>120ms</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-sync me-1"></i>刷新
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>数据库连接</td>
+                                    <td><span class="badge bg-success">正常</span></td>
+                                    <td>2023-06-15 14:30:22</td>
+                                    <td>8ms</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-sync me-1"></i>刷新
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>JIRA API</td>
+                                    <td><span class="badge bg-warning">警告</span></td>
+                                    <td>2023-06-15 14:25:18</td>
+                                    <td>340ms</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-sync me-1"></i>刷新
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Git API</td>
+                                    <td><span class="badge bg-success">正常</span></td>
+                                    <td>2023-06-15 14:30:22</td>
+                                    <td>180ms</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-sync me-1"></i>刷新
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据导入任务监控 - 数据分析平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --border-medium: #cbd5e1;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.05);
+        }
+        .nav-link.active {
+            color: var(--primary-blue) !important;
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .dropdown-menu {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--primary-blue);
+        }
+        .main-container {
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .control-bar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-light);
+        }
+        .btn-custom {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .btn-outline-custom {
+            background: transparent;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-custom:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+            cursor: move;
+            position: relative;
+            overflow: hidden;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .dashboard-card.dragging {
+            opacity: 0.5;
+        }
+        .card-header-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .icon-blue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .icon-green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .icon-orange {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .icon-red {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+        }
+        .time-selector {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .time-selector .btn {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: white;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        .time-selector .btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        .filter-section {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .form-control-custom {
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .form-control-custom:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            outline: none;
+        }
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-container {
+                padding: 1rem;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        .spinner-custom {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-light);
+            border-top-color: var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--error-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .task-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-orange);
+        }
+        .status-processing {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary-blue);
+        }
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+        }
+        .status-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+        }
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-custom {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .table th {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(79, 70, 229, 0.03);
+        }
+        .task-detail-modal .modal-body {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>数据分析平台
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-tachometer-alt me-2"></i>首页/仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link active dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-database me-2"></i>数据管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-plug me-2"></i>数据源管理</a></li>
+                            <li><a class="dropdown-item active" href="#"><i class="fas fa-tasks me-2"></i>导入任务监控</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cogs me-2"></i>任务中心
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-bar me-2"></i>分析结果
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-exclamation-triangle me-2"></i>异常检测详情</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-project-diagram me-2"></i>用户行为聚类</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-file-export me-2"></i>报告
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-users-cog me-2"></i>管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-shield me-2"></i>用户权限管理</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>系统设置</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-2"></i>张三
+                            <span class="notification-badge">3</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i>通知设置</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>系统设置</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="control-bar">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="mb-3">数据导入任务监控</h2>
+                    <div class="filter-section">
+                        <select class="form-control form-control-custom" style="width: auto;">
+                            <option>全部数据源</option>
+                            <option>销售数据</option>
+                            <option>用户行为</option>
+                            <option>系统日志</option>
+                        </select>
+                        <select class="form-control form-control-custom" style="width: auto;">
+                            <option>全部状态</option>
+                            <option>待处理</option>
+                            <option>处理中</option>
+                            <option>已完成</option>
+                            <option>失败</option>
+                        </select>
+                        <input type="text" class="form-control form-control-custom" placeholder="搜索任务ID..." style="width: 200px;">
+                        <button class="btn btn-outline-custom">
+                            <i class="fas fa-filter me-2"></i>高级筛选
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="time-selector justify-content-md-end">
+                        <span class="text-muted me-2">时间范围：</span>
+                        <button class="btn active">今日</button>
+                        <button class="btn">本周</button>
+                        <button class="btn">本月</button>
+                        <button class="btn">本年</button>
+                        <button class="btn">
+                            <i class="fas fa-calendar-alt me-1"></i>自定义
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-custom me-2">
+                            <i class="fas fa-sync-alt me-2"></i>刷新任务
+                        </button>
+                        <button class="btn btn-outline-custom">
+                            <i class="fas fa-history me-2"></i>任务历史
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">任务状态统计</h5>
+                    <div class="card-icon icon-blue">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-value">24</div>
+                        <div class="stat-label">待处理</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>5%
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">处理中</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>2%
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-value">127</div>
+                        <div class="stat-label">已完成</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>12%
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">失败</div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-up me-1"></i>15%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">任务队列</h5>
+                    <div class="card-icon icon-green">
+                        <i class="fas fa-list"></i>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>任务ID</th>
+                                <th>状态</th>
+                                <th>进度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#TASK-001</td>
+                                <td><span class="task-status status-pending">待处理</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-002</td>
+                                <td><span class="task-status status-processing">处理中</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 65%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-003</td>
+                                <td><span class="task-status status-completed">已完成</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-004</td>
+                                <td><span class="task-status status-failed">失败</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 85%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-header-custom">
+                    <h5 class="card-title">最近任务</h5>
+                    <div class="card-icon icon-orange">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>任务ID</th>
+                                <th>状态</th>
+                                <th>开始时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#TASK-005</td>
+                                <td><span class="task-status status-completed">已完成</span></td>
+                                <td>10:20:30</td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-006</td>
+                                <td><span class="task-status status-processing">处理中</span></td>
+                                <td>10:15:45</td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-007</td>
+                                <td><span class="task-status status-pending">待处理</span></td>
+                                <td>10:10:22</td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-008</td>
+                                <td><span class="task-status status-failed">失败</span></td>
+                                <td>10:05:15</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="dashboard-card" style="grid-column: span 2;">
+                <div class="card-header-custom">
+                    <h5 class="card-title">任务列表</h5>
+                    <div class="card-icon icon-red">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>任务ID</th>
+                                <th>数据源</th>
+                                <th>状态</th>
+                                <th>进度</th>
+                                <th>开始时间</th>
+                                <th>耗时</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#TASK-001</td>
+                                <td>销售数据</td>
+                                <td><span class="task-status status-pending">待处理</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </td>
+                                <td>10:25:10</td>
+                                <td>0s</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#taskDetailModal">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-002</td>
+                                <td>用户行为</td>
+                                <td><span class="task-status status-processing">处理中</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 65%"></div>
+                                    </div>
+                                </td>
+                                <td>10:20:30</td>
+                                <td>4m 25s</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#taskDetailModal">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger disabled">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-003</td>
+                                <td>系统日志</td>
+                                <td><span class="task-status status-completed">已完成</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                    </div>
+                                </td>
+                                <td>10:15:20</td>
+                                <td>8m 30s</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#taskDetailModal">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger disabled">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#TASK-004</td>
+                                <td>销售数据</td>
+                                <td><span class="task-status status-failed">失败</span></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 85%"></div>
+                                    </div>
+                                </td>
+                                <td>10:10:45</td>
+                                <td>5m 12s</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#taskDetailModal">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="taskDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">任务详情 - #TASK-002</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body task-detail-modal">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>基本信息</h6>
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>任务ID:</strong></td>
+                                        <td>#TASK-002</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>数据源:</strong></td>
+                                        <td>用户行为</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>状态:</strong></td>
+                                        <td><span class="task-status status-processing">处理中</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>开始时间:</strong></td>
+                                        <td>2024-01-15 10:20:30</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>进度信息</h6>
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>总文件数:</strong></td>
+                                        <td>128</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>已处理:</strong></td>
+                                        <td>83</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>进度:</strong></td>
+                                        <td>65%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>剩余时间:</strong></td>
+                                        <td>约2分钟</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <h6>详细日志</h6>
+                        <div class="border rounded p-3" style="height: 200px; overflow-y: auto;">
+                            <pre style="font-size: 0.8rem;">2024-01-15 10:20:30 INFO 开始处理任务 #TASK-002
+2024-01-15 10:20:32 INFO 读取文件 user_behavior_20240115.csv
+2024-01-15 10:20:35 INFO 解析文件数据
+2024-01-15 10:20:40 INFO 数据验证通过
+2024-01-15 10:20:45 INFO 开始写入数据库
+2024-01-15 10:20:50 WARN 发现重复记录，跳过处理
+2024-01-15 10:20:55 INFO 完成写入操作
+2024-01-15 10:21:00 INFO 任务处理中...</pre>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <h6>操作</h6>
+                        <button class="btn btn-outline-primary me-2">
+                            <i class="fas fa-download me-1"></i>下载日志
+                        </button>
+                        <button class="btn btn-outline-danger">
+                            <i class="fas fa-redo me-1"></i>重试任务
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="fab" onclick="addNewTask()">
+        <i class="fas fa-plus"></i>
+    </button>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        new Sortable(document.getElementById('dashboardGrid'), {
+            animation: 150,
+            ghostClass: 'dragging',
+            handle: '.dashboard-card'
+        });
+        function updateTaskData() {
+            console.log('任务数据已刷新');
+        }
+        document.querySelectorAll('.time-selector .btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.time-selector .btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                console.log('时间范围已更改为:', this.textContent);
+            });
+        });
+        document.querySelector('.btn-custom').addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            icon.classList.add('fa-spin');
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                updateTaskData();
+            }, 1000);
+        });
+        function addNewTask() {
+            alert('添加新任务功能暂未实现');
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('数据导入任务监控页面已加载完成');
+        });
+    </script>
+</body>
+</html>

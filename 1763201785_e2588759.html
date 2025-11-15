@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时监控仪表板 - 日志分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e6ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+        .navbar-menu li {
+            position: relative;
+        }
+        .navbar-menu a {
+            text-decoration: none;
+            color: #606266;
+            font-size: 14px;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s;
+        }
+        .navbar-menu a:hover {
+            color: #1e88e5;
+        }
+        .navbar-menu a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            min-width: 160px;
+            display: none;
+            margin-top: 4px;
+        }
+        .navbar-menu li:hover .dropdown {
+            display: block;
+        }
+        .dropdown a {
+            padding: 10px 16px;
+            display: block;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: #f5f7fa;
+            border: 1px solid #e0e6ed;
+            border-radius: 2px;
+            font-size: 14px;
+            color: #606266;
+        }
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            min-width: 160px;
+            display: none;
+            margin-top: 4px;
+        }
+        .user-dropdown:hover .user-dropdown-menu {
+            display: block;
+        }
+        .main-container {
+            padding: 24px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .filter-section {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-item label {
+            font-size: 14px;
+            color: #606266;
+        }
+        .filter-item select,
+        .filter-item input {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            font-size: 14px;
+            color: #606266;
+            background-color: #fff;
+            outline: none;
+        }
+        .filter-item select:focus,
+        .filter-item input:focus {
+            border-color: #1e88e5;
+        }
+        .btn-primary {
+            background-color: #1e88e5;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #1976d2;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        .monitoring-chart {
+            height: 300px;
+        }
+        .monitoring-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .status-card {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .status-card:hover {
+            border-color: #1e88e5;
+            background-color: #f8fbff;
+        }
+        .status-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .status-card-title {
+            font-size: 14px;
+            color: #606266;
+        }
+        .status-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+        }
+        .status-icon.normal {
+            background-color: #f0fdf4;
+            color: #10b981;
+        }
+        .status-icon.warning {
+            background-color: #fef3c7;
+            color: #f59e0b;
+        }
+        .status-icon.error {
+            background-color: #fee;
+            color: #f56565;
+        }
+        .status-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #303133;
+        }
+        .status-time {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        .config-panel {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+        }
+        .config-item {
+            margin-bottom: 16px;
+        }
+        .config-label {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .config-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dcdfe6;
+            font-size: 14px;
+            color: #606266;
+            background-color: #fff;
+            outline: none;
+        }
+        .config-input:focus {
+            border-color: #1e88e5;
+        }
+        .config-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .monitoring-status {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .monitoring-status {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            日志分析系统
+        </div>
+        <ul class="navbar-menu">
+            <li>
+                <a href="#" class="active">
+                    <i class="fas fa-home"></i>
+                    首页
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-file-alt"></i>
+                    日志管理
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </a>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-upload"></i> 数据导入</a>
+                    <a href="#"><i class="fas fa-search"></i> 查询分析</a>
+                </div>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-desktop"></i>
+                    监控中心
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-chart-bar"></i>
+                    可视化配置
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-shield-alt"></i>
+                    安全管理
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </a>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-users-cog"></i> 权限管理</a>
+                    <a href="#"><i class="fas fa-exclamation-triangle"></i> 异常报告</a>
+                </div>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-cog"></i>
+                    系统设置
+                </a>
+            </li>
+        </ul>
+        <div class="user-menu">
+            <div class="user-dropdown">
+                <div class="user-dropdown-toggle">
+                    <i class="fas fa-user-circle"></i>
+                    <span>管理员</span>
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </div>
+                <div class="user-dropdown-menu">
+                    <a href="#"><i class="fas fa-user"></i> 个人资料</a>
+                    <a href="#"><i class="fas fa-sign-out-alt"></i> 退出登录</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="filter-section">
+            <div class="filter-item">
+                <label>时间范围：</label>
+                <select id="timeRange">
+                    <option value="24h">最近24小时</option>
+                    <option value="7d">最近7天</option>
+                    <option value="30d">最近30天</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>数据源：</label>
+                <select id="dataSource">
+                    <option value="all">全部</option>
+                    <option value="web">Web服务器</option>
+                    <option value="app">应用服务器</option>
+                    <option value="db">数据库</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>IP地址：</label>
+                <input type="text" id="ipAddress" placeholder="输入IP地址段">
+            </div>
+            <button class="btn-primary" onclick="applyFilters()">
+                <i class="fas fa-filter"></i> 应用过滤
+            </button>
+        </div>
+        <div class="content-grid">
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">实时网络流量监控</div>
+                            <div class="card-subtitle">动态展示网络访问日志的实时流数据</div>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button style="padding: 4px 12px; border: 1px solid #dcdfe6; background: #fff; cursor: pointer;" onclick="switchTimeRange('1h')">1小时</button>
+                            <button style="padding: 4px 12px; border: 1px solid #dcdfe6; background: #fff; cursor: pointer;" onclick="switchTimeRange('24h')">24小时</button>
+                            <button style="padding: 4px 12px; border: 1px solid #dcdfe6; background: #fff; cursor: pointer;" onclick="switchTimeRange('7d')">7天</button>
+                        </div>
+                    </div>
+                    <div id="monitoringChart" class="monitoring-chart"></div>
+                </div>
+                <div class="monitoring-status">
+                    <div class="status-card" onclick="window.location.href='#'">
+                        <div class="status-card-header">
+                            <span class="status-card-title">正常状态</span>
+                            <div class="status-icon normal">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="status-value">1,248</div>
+                        <div class="status-time">活跃连接</div>
+                    </div>
+                    <div class="status-card" onclick="window.location.href='#'">
+                        <div class="status-card-header">
+                            <span class="status-card-title">警告</span>
+                            <div class="status-icon warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="status-value">24</div>
+                        <div class="status-time">异常请求</div>
+                    </div>
+                    <div class="status-card" onclick="window.location.href='#'">
+                        <div class="status-card-header">
+                            <span class="status-card-title">错误</span>
+                            <div class="status-icon error">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                        </div>
+                        <div class="status-value">8</div>
+                        <div class="status-time">错误响应</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="config-panel">
+                    <div class="card-header">
+                        <div class="card-title">监控配置</div>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">阈值设置</label>
+                        <input type="number" class="config-input" placeholder="请输入阈值" value="1000">
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">告警规则</label>
+                        <select class="config-input">
+                            <option>高优先级告警</option>
+                            <option>中优先级告警</option>
+                            <option>低优先级告警</option>
+                        </select>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">通知方式</label>
+                        <div class="config-checkbox">
+                            <input type="checkbox" id="emailNotify" checked>
+                            <label for="emailNotify">邮件通知</label>
+                        </div>
+                        <div class="config-checkbox">
+                            <input type="checkbox" id="smsNotify">
+                            <label for="smsNotify">短信通知</label>
+                        </div>
+                        <div class="config-checkbox">
+                            <input type="checkbox" id="webhookNotify" checked>
+                            <label for="webhookNotify">Webhook通知</label>
+                        </div>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">自定义视图</label>
+                        <textarea class="config-input" rows="3" placeholder="请输入自定义监控视图描述"></textarea>
+                    </div>
+                    <button class="btn-primary" style="width: 100%; margin-top: 16px;">
+                        <i class="fas fa-save"></i> 保存配置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const monitoringChart = echarts.init(document.getElementById('monitoringChart'));
+        function generateData() {
+            const data = [];
+            const now = new Date();
+            for (let i = 0; i < 24; i++) {
+                const time = new Date(now.getTime() - (23 - i) * 3600000);
+                data.push([
+                    time.getHours() + ':00',
+                    Math.floor(Math.random() * 500) + 1000
+                ]);
+            }
+            return data;
+        }
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: generateData().map(item => item[0])
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value}'
+                }
+            },
+            series: [{
+                name: '请求数',
+                type: 'line',
+                smooth: true,
+                data: generateData().map(item => item[1]),
+                itemStyle: {
+                    color: '#1e88e5'
+                },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        {
+                            offset: 0,
+                            color: 'rgba(30, 136, 229, 0.3)'
+                        },
+                        {
+                            offset: 1,
+                            color: 'rgba(30, 136, 229, 0.05)'
+                        }
+                    ])
+                }
+            }]
+        };
+        monitoringChart.setOption(option);
+        window.addEventListener('resize', function() {
+            monitoringChart.resize();
+        });
+        setInterval(function() {
+            const data = generateData().map(item => item[1]);
+            option.series[0].data = data;
+            monitoringChart.setOption(option);
+        }, 5000);
+        function switchTimeRange(range) {
+            console.log('切换时间范围:', range);
+            const data = generateData();
+            option.series[0].data = data.map(item => item[1]);
+            monitoringChart.setOption(option);
+        }
+        function applyFilters() {
+            const timeRange = document.getElementById('timeRange').value;
+            const dataSource = document.getElementById('dataSource').value;
+            const ipAddress = document.getElementById('ipAddress').value;
+            console.log('应用过滤器:', { timeRange, dataSource, ipAddress });
+            const data = generateData();
+            option.series[0].data = data.map(item => item[1]);
+            monitoringChart.setOption(option);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可视化配置管理 - 日志分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e6ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+        .navbar-menu li {
+            position: relative;
+        }
+        .navbar-menu a {
+            text-decoration: none;
+            color: #606266;
+            font-size: 14px;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s;
+        }
+        .navbar-menu a:hover {
+            color: #1e88e5;
+        }
+        .navbar-menu a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            min-width: 160px;
+            display: none;
+            margin-top: 4px;
+        }
+        .navbar-menu li:hover .dropdown {
+            display: block;
+        }
+        .dropdown a {
+            padding: 10px 16px;
+            display: block;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: #f5f7fa;
+            border: 1px solid #e0e6ed;
+            border-radius: 2px;
+            font-size: 14px;
+            color: #606266;
+        }
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            min-width: 160px;
+            display: none;
+            margin-top: 4px;
+        }
+        .user-dropdown:hover .user-dropdown-menu {
+            display: block;
+        }
+        .main-container {
+            padding: 24px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .filter-section {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-item label {
+            font-size: 14px;
+            color: #606266;
+        }
+        .filter-item select,
+        .filter-item input {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            font-size: 14px;
+            color: #606266;
+            background-color: #fff;
+            outline: none;
+        }
+        .filter-item select:focus,
+        .filter-item input:focus {
+            border-color: #1e88e5;
+        }
+        .btn-primary {
+            background-color: #1e88e5;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #1976d2;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        .chart-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+        .config-card {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .config-card:hover {
+            border-color: #1e88e5;
+            box-shadow: 0 2px 8px rgba(30, 136, 229, 0.1);
+        }
+        .config-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .config-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #303133;
+        }
+        .config-card-type {
+            font-size: 12px;
+            color: #909399;
+            background-color: #f0f2f5;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .config-card-description {
+            font-size: 12px;
+            color: #606266;
+            margin-bottom: 12px;
+        }
+        .config-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .config-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+            border: 1px solid #dcdfe6;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .config-btn:hover {
+            background-color: #f5f7fa;
+        }
+        .new-config-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background-color: #1e88e5;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .new-config-btn:hover {
+            background-color: #1976d2;
+        }
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-config {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .chart-config {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            日志分析系统
+        </div>
+        <ul class="navbar-menu">
+            <li>
+                <a href="#">
+                    <i class="fas fa-home"></i>
+                    首页
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-file-alt"></i>
+                    日志管理
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </a>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-upload"></i> 数据导入</a>
+                    <a href="#"><i class="fas fa-search"></i> 查询分析</a>
+                </div>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-desktop"></i>
+                    监控中心
+                </a>
+            </li>
+            <li>
+                <a href="#" class="active">
+                    <i class="fas fa-chart-bar"></i>
+                    可视化配置
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-shield-alt"></i>
+                    安全管理
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </a>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-users-cog"></i> 权限管理</a>
+                    <a href="#"><i class="fas fa-exclamation-triangle"></i> 异常报告</a>
+                </div>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-cog"></i>
+                    系统设置
+                </a>
+            </li>
+        </ul>
+        <div class="user-menu">
+            <div class="user-dropdown">
+                <div class="user-dropdown-toggle">
+                    <i class="fas fa-user-circle"></i>
+                    <span>管理员</span>
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </div>
+                <div class="user-dropdown-menu">
+                    <a href="#"><i class="fas fa-user"></i> 个人资料</a>
+                    <a href="#"><i class="fas fa-sign-out-alt"></i> 退出登录</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="filter-section">
+            <div class="filter-item">
+                <label>配置名称：</label>
+                <input type="text" id="configName" placeholder="输入配置名称">
+            </div>
+            <div class="filter-item">
+                <label>图表类型：</label>
+                <select id="chartType">
+                    <option value="all">全部</option>
+                    <option value="bar">柱状图</option>
+                    <option value="line">折线图</option>
+                    <option value="pie">饼图</option>
+                    <option value="scatter">散点图</option>
+                    <option value="geo">地理分布图</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>创建者：</label>
+                <select id="creator">
+                    <option value="all">全部</option>
+                    <option value="admin">管理员</option>
+                    <option value="user1">用户1</option>
+                    <option value="user2">用户2</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="applyFilters()">
+                <i class="fas fa-filter"></i> 应用过滤
+            </button>
+        </div>
+        <div class="content-grid">
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">图表配置管理</div>
+                            <div class="card-subtitle">创建和管理自定义图表配置</div>
+                        </div>
+                        <button class="new-config-btn" onclick="createNewConfig()">
+                            <i class="fas fa-plus"></i> 新建配置
+                        </button>
+                    </div>
+                    <div class="chart-config">
+                        <div class="config-card" onclick="editConfig('1')">
+                            <div class="config-card-header">
+                                <span class="config-card-title">网站访问趋势分析</span>
+                                <span class="config-card-type">折线图</span>
+                            </div>
+                            <div class="config-card-description">
+                                显示过去30天的网站访问量变化趋势
+                            </div>
+                            <div class="config-card-actions">
+                                <button class="config-btn"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="config-btn"><i class="fas fa-share-alt"></i> 共享</button>
+                                <button class="config-btn"><i class="fas fa-trash"></i> 删除</button>
+                            </div>
+                        </div>
+                        <div class="config-card" onclick="editConfig('2')">
+                            <div class="config-card-header">
+                                <span class="config-card-title">地域访问分布</span>
+                                <span class="config-card-type">地理分布图</span>
+                            </div>
+                            <div class="config-card-description">
+                                展示不同地区的访问量分布情况
+                            </div>
+                            <div class="config-card-actions">
+                                <button class="config-btn"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="config-btn"><i class="fas fa-share-alt"></i> 共享</button>
+                                <button class="config-btn"><i class="fas fa-trash"></i> 删除</button>
+                            </div>
+                        </div>
+                        <div class="config-card" onclick="editConfig('3')">
+                            <div class="config-card-header">
+                                <span class="config-card-title">错误日志统计</span>
+                                <span class="config-card-type">柱状图</span>
+                            </div>
+                            <div class="config-card-description">
+                                统计各类错误日志的发生频率
+                            </div>
+                            <div class="config-card-actions">
+                                <button class="config-btn"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="config-btn"><i class="fas fa-share-alt"></i> 共享</button>
+                                <button class="config-btn"><i class="fas fa-trash"></i> 删除</button>
+                            </div>
+                        </div>
+                        <div class="config-card" onclick="editConfig('4')">
+                            <div class="config-card-header">
+                                <span class="config-card-title">API响应时间</span>
+                                <span class="config-card-type">散点图</span>
+                            </div>
+                            <div class="config-card-description">
+                                分析API调用的响应时间和成功率关系
+                            </div>
+                            <div class="config-card-actions">
+                                <button class="config-btn"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="config-btn"><i class="fas fa-share-alt"></i> 共享</button>
+                                <button class="config-btn"><i class="fas fa-trash"></i> 删除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">配置详情</div>
+                    </div>
+                    <div style="padding: 16px; border: 1px solid #e0e6ed; border-radius: 4px; background-color: #f8fbff;">
+                        <h3 style="margin-bottom: 12px;">基础信息</h3>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 4px; color: #606266;">配置名称</label>
+                            <input type="text" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 2px;" value="网站访问趋势分析">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 4px; color: #606266;">图表类型</label>
+                            <select style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 2px;">
+                                <option>折线图</option>
+                                <option>柱状图</option>
+                                <option>饼图</option>
+                                <option>散点图</option>
+                                <option>地理分布图</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 4px; color: #606266;">数据源</label>
+                            <select style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 2px;">
+                                <option>Web服务器日志</option>
+                                <option>应用服务器日志</option>
+                                <option>数据库日志</option>
+                            </select>
+                        </div>
+                        <h3 style="margin: 20px 0 12px;">筛选条件</h3>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 4px; color: #606266;">时间范围</label>
+                            <select style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 2px;">
+                                <option>最近24小时</option>
+                                <option>最近7天</option>
+                                <option>最近30天</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 4px; color: #606266;">IP地址段</label>
+                            <input type="text" style="width: 100%; padding: 8px; border: 1px solid #dcdfe6; border-radius: 2px;" placeholder="例如: 192.168.1.0/24">
+                        </div>
+                        <h3 style="margin: 20px 0 12px;">样式设置</h3>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 4px; color: #606266;">主题颜色</label>
+                            <div style="display: flex; gap: 8px;">
+                                <div style="width: 30px; height: 30px; background-color: #1e88e5; border-radius: 4px;"></div>
+                                <div style="width: 30px; height: 30px; background-color: #f56565; border-radius: 4px;"></div>
+                                <div style="width: 30px; height: 30px; background-color: #3b82f6; border-radius: 4px;"></div>
+                                <div style="width: 30px; height: 30px; background-color: #10b981; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <button class="btn-primary" style="flex: 1;">
+                                <i class="fas fa-save"></i> 保存配置
+                            </button>
+                            <button class="btn-primary" style="flex: 1; background-color: #909399;">
+                                <i class="fas fa-times"></i> 取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const configs = [
+            {
+                id: '1',
+                name: '网站访问趋势分析',
+                type: '折线图',
+                description: '显示过去30天的网站访问量变化趋势',
+                creator: '管理员'
+            },
+            {
+                id: '2',
+                name: '地域访问分布',
+                type: '地理分布图',
+                description: '展示不同地区的访问量分布情况',
+                creator: '用户1'
+            },
+            {
+                id: '3',
+                name: '错误日志统计',
+                type: '柱状图',
+                description: '统计各类错误日志的发生频率',
+                creator: '用户2'
+            },
+            {
+                id: '4',
+                name: 'API响应时间',
+                type: '散点图',
+                description: '分析API调用的响应时间和成功率关系',
+                creator: '管理员'
+            }
+        ];
+        function createNewConfig() {
+            alert('创建新配置功能已激活');
+        }
+        function editConfig(id) {
+            alert(`编辑配置 ID: ${id}`);
+        }
+        function applyFilters() {
+            const configName = document.getElementById('configName').value;
+            const chartType = document.getElementById('chartType').value;
+            const creator = document.getElementById('creator').value;
+            console.log('应用过滤器:', { configName, chartType, creator });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.navbar-menu a');
+            navLinks.forEach(link => {
+                if (link.querySelector('i').className.includes('fa-chart-bar')) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

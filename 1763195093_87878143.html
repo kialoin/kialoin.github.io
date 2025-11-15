@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多维特征融合管理界面</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-card: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: white;
+            background: var(--primary-gradient);
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--accent-purple);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+        .stat-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+        }
+        .stat-card.primary {
+            border-left-color: var(--primary-blue);
+        }
+        .stat-card.success {
+            border-left-color: var(--success-green);
+        }
+        .stat-card.warning {
+            border-left-color: var(--warning-orange);
+        }
+        .stat-card.danger {
+            border-left-color: var(--error-red);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+        .stat-change.up {
+            color: var(--success-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .stat-change.down {
+            color: var(--error-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .task-item:hover {
+            background: var(--bg-card);
+            transform: translateX(5px);
+        }
+        .task-priority {
+            width: 4px;
+            height: 40px;
+            border-radius: 2px;
+            margin-right: 1rem;
+        }
+        .task-priority.high {
+            background: var(--error-red);
+        }
+        .task-priority.medium {
+            background: var(--warning-orange);
+        }
+        .task-priority.low {
+            background: var(--success-green);
+        }
+        .notification-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+            transition: all 0.3s ease;
+        }
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .notification-item.error {
+            border-left-color: var(--error-red);
+        }
+        .notification-item.warning {
+            border-left-color: var(--warning-orange);
+        }
+        .notification-item.info {
+            border-left-color: var(--primary-blue);
+        }
+        .resource-bar {
+            height: 8px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .resource-progress {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .resource-progress.normal {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        .resource-progress.warning {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+        .resource-progress.danger {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+        @media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 1rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .quick-action-btn {
+                padding: 1rem;
+            }
+            .quick-action-btn i {
+                font-size: 1.5rem;
+            }
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            border-left: 3px solid var(--primary-blue);
+        }
+        .feature-item:hover {
+            background: var(--bg-card);
+            transform: translateX(5px);
+        }
+        .feature-weight {
+            width: 100px;
+            text-align: center;
+        }
+        .fusion-mode {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .fusion-mode input[type="radio"] {
+            margin: 0;
+        }
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>缺陷预测系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-database me-1"></i>数据管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-brain me-1"></i>模型管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-bug me-1"></i>预测中心</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-pie me-1"></i>分析报告</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-project-diagram me-1"></i>特征融合</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid px-4 py-4">
+        <div class="row g-4">
+            <div class="col-xl-8">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-th-list"></i>
+                        已提取特征列表
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>特征名称</th>
+                                    <th>特征类型</th>
+                                    <th>维度</th>
+                                    <th>权重</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>文本特征向量</td>
+                                    <td>文本</td>
+                                    <td>512</td>
+                                    <td class="feature-weight">
+                                        <input type="number" class="form-control form-control-sm" value="0.3" min="0" max="1" step="0.01">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>图像特征向量</td>
+                                    <td>图像</td>
+                                    <td>2048</td>
+                                    <td class="feature-weight">
+                                        <input type="number" class="form-control form-control-sm" value="0.4" min="0" max="1" step="0.01">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>音频特征向量</td>
+                                    <td>音频</td>
+                                    <td>1024</td>
+                                    <td class="feature-weight">
+                                        <input type="number" class="form-control form-control-sm" value="0.2" min="0" max="1" step="0.01">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>结构化特征向量</td>
+                                    <td>结构化</td>
+                                    <td>64</td>
+                                    <td class="feature-weight">
+                                        <input type="number" class="form-control form-control-sm" value="0.1" min="0" max="1" step="0.01">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="dashboard-card mt-4">
+                    <div class="card-title">
+                        <i class="fas fa-sliders-h"></i>
+                        融合模式配置
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="fusionMode" id="manualMode" checked>
+                                <label class="form-check-label" for="manualMode">
+                                    手动调整权重
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="fusionMode" id="autoMode">
+                                <label class="form-check-label" for="autoMode">
+                                    AI自动融合模式
+                                </label>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                AI自动融合支持多种降维算法，包括PCA、t-SNE、UMAP等
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">降维算法</label>
+                                <select class="form-select">
+                                    <option>PCA</option>
+                                    <option selected>t-SNE</option>
+                                    <option>UMAP</option>
+                                    <option>AutoEncoder</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">目标维度</label>
+                                <input type="number" class="form-control" value="128" min="1" max="1024">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">融合参数</label>
+                                <input type="range" class="form-range" min="0" max="100" value="50">
+                                <div class="d-flex justify-content-between">
+                                    <small>低</small>
+                                    <small>高</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        特征向量可视化
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="featureScatterChart"></canvas>
+                    </div>
+                </div>
+                <div class="dashboard-card mt-4">
+                    <div class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        融合效果评估
+                    </div>
+                    <div class="stat-card primary mb-3">
+                        <div class="stat-label">融合后维度</div>
+                        <div class="stat-value text-primary">128</div>
+                    </div>
+                    <div class="stat-card success mb-3">
+                        <div class="stat-label">信息保留率</div>
+                        <div class="stat-value text-success">92.3%</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">计算复杂度</div>
+                        <div class="stat-value text-warning">中等</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mt-2">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-history"></i>
+                        历史融合记录
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>融合方式</th>
+                                    <th>维度</th>
+                                    <th>信息保留率</th>
+                                    <th>性能指标</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2023-10-15 14:30</td>
+                                    <td>PCA + 手动加权</td>
+                                    <td>128</td>
+                                    <td>92.3%</td>
+                                    <td>准确率: 94.2%</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">查看详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2023-10-14 09:15</td>
+                                    <td>t-SNE + 自动融合</td>
+                                    <td>64</td>
+                                    <td>88.7%</td>
+                                    <td>准确率: 91.8%</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">查看详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2023-10-13 16:45</td>
+                                    <td>手动加权</td>
+                                    <td>256</td>
+                                    <td>95.1%</td>
+                                    <td>准确率: 93.5%</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">查看详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const featureScatterCtx = document.getElementById('featureScatterChart').getContext('2d');
+        new Chart(featureScatterCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: '文本特征',
+                    data: Array.from({length: 20}, () => ({
+                        x: Math.random() * 100,
+                        y: Math.random() * 100
+                    })),
+                    backgroundColor: '#6366f1',
+                    borderColor: '#6366f1',
+                    pointRadius: 5
+                }, {
+                    label: '图像特征',
+                    data: Array.from({length: 20}, () => ({
+                        x: Math.random() * 100 + 50,
+                        y: Math.random() * 100 + 50
+                    })),
+                    backgroundColor: '#10b981',
+                    borderColor: '#10b981',
+                    pointRadius: 5
+                }, {
+                    label: '音频特征',
+                    data: Array.from({length: 20}, () => ({
+                        x: Math.random() * 100 - 50,
+                        y: Math.random() * 100 - 50
+                    })),
+                    backgroundColor: '#f59e0b',
+                    borderColor: '#f59e0b',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: (${context.parsed.x.toFixed(1)}, ${context.parsed.y.toFixed(1)})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '主成分 1'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '主成分 2'
+                        }
+                    }
+                }
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const weightInputs = document.querySelectorAll('.feature-weight input');
+            weightInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    this.value = Math.min(1, Math.max(0, parseFloat(this.value) || 0));
+                });
+            });
+            const fusionModes = document.querySelectorAll('input[name="fusionMode"]');
+            fusionModes.forEach(mode => {
+                mode.addEventListener('change', function() {
+                    if (this.id === 'autoMode') {
+                        document.querySelector('.form-select').disabled = false;
+                        document.querySelector('input[type="number"]').disabled = false;
+                        document.querySelector('input[type="range"]').disabled = false;
+                    } else {
+                        document.querySelector('.form-select').disabled = true;
+                        document.querySelector('input[type="number"]').disabled = true;
+                        document.querySelector('input[type="range"]').disabled = true;
+                    }
+                });
+            });
+            document.querySelector('.form-select').disabled = true;
+            document.querySelector('input[type="number"]').disabled = true;
+            document.querySelector('input[type="range"]').disabled = true;
+        });
+    </script>
+</body>
+</html>

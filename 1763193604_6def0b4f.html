@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - Bug智能分类系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-gray: #475569;
+            --text-light: #64748b;
+            --border-light: #e2e8f0;
+            --border-gray: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+        }
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header h2 {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+        .login-header p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--primary-gradient);
+            margin-bottom: 1rem;
+        }
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
+            background: white;
+        }
+        .btn-login {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .forgot-password {
+            display: block;
+            text-align: center;
+            color: var(--primary-blue);
+            text-decoration: none;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .forgot-password:hover {
+            color: var(--secondary-blue);
+            text-decoration: underline;
+        }
+        .role-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .role-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .role-option:hover {
+            border-color: var(--primary-blue);
+        }
+        .role-option.active {
+            border-color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.05);
+        }
+        .role-option i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+        }
+        .role-option span {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+        .divider {
+            text-align: center;
+            position: relative;
+            margin: 1.5rem 0;
+        }
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-light);
+            z-index: 1;
+        }
+        .divider span {
+            background: white;
+            position: relative;
+            z-index: 2;
+            padding: 0 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-light);
+            background: white;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .social-btn.google:hover {
+            color: #DB4437;
+        }
+        .social-btn.github:hover {
+            color: #333;
+        }
+        .social-btn.wechat:hover {
+            color: #07C160;
+        }
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .btn-login .spinner {
+            vertical-align: middle;
+        }
+        @media (max-width: 768px) {
+            .login-card {
+                padding: 1.5rem;
+            }
+            .role-selector {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <h2>欢迎登录</h2>
+                <p>基于多维特征融合的软件Bug智能分类系统</p>
+            </div>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="username" class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+                    <div class="error-message" id="username-error">请输入有效的用户名</div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">密码</label>
+                    <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                    <div class="error-message" id="password-error">密码长度至少为6位</div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">登录角色</label>
+                    <div class="role-selector">
+                        <div class="role-option active" data-role="admin">
+                            <i class="fas fa-user-shield"></i>
+                            <span>管理员</span>
+                        </div>
+                        <div class="role-option" data-role="user">
+                            <i class="fas fa-user"></i>
+                            <span>普通用户</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-login">
+                        <span class="spinner" id="loadingSpinner"></span>
+                        <span id="loginText">登录</span>
+                    </button>
+                </div>
+                <div class="divider">
+                    <span>或使用其他方式登录</span>
+                </div>
+                <div class="social-login">
+                    <a href="#" class="social-btn google">
+                        <i class="fab fa-google"></i>
+                    </a>
+                    <a href="#" class="social-btn github">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="social-btn wechat">
+                        <i class="fab fa-weixin"></i>
+                    </a>
+                </div>
+                <a href="#" class="forgot-password">
+                    <i class="fas fa-question-circle me-1"></i>忘记密码？
+                </a>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.role-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.querySelector('.role-option.active').dataset.role;
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const loginText = document.getElementById('loginText');
+            let isValid = true;
+            if (username.length < 3) {
+                document.getElementById('username-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('username-error').style.display = 'none';
+            }
+            if (password.length < 6) {
+                document.getElementById('password-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('password-error').style.display = 'none';
+            }
+            if (!isValid) return;
+            loadingSpinner.style.display = 'inline-block';
+            loginText.textContent = '登录中...';
+            setTimeout(() => {
+                loadingSpinner.style.display = 'none';
+                loginText.textContent = '登录';
+                if (role === 'admin') {
+                    alert('管理员登录成功！\n跳转到管理员主页...');
+                    window.location.href = 'admin.html';
+                } else {
+                    alert('普通用户登录成功！\n跳转到用户主页...');
+                    window.location.href = 'dashboard.html';
+                }
+            }, 1500);
+        });
+        document.getElementById('username').addEventListener('input', function() {
+            if (this.value.length >= 3) {
+                document.getElementById('username-error').style.display = 'none';
+            }
+        });
+        document.getElementById('password').addEventListener('input', function() {
+            if (this.value.length >= 6) {
+                document.getElementById('password-error').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

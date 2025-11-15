@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型训练与优化界面 - 缺陷预测系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-blue: #4f46e5;
+            --secondary-blue: #6366f1;
+            --accent-purple: #8b5cf6;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --error-red: #ef4444;
+            --bg-light: #f8fafc;
+            --bg-card: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-link {
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .nav-link.active {
+            color: white;
+            background: var(--primary-gradient);
+        }
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-title i {
+            color: var(--accent-purple);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+        .stat-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+        }
+        .stat-card.primary {
+            border-left-color: var(--primary-blue);
+        }
+        .stat-card.success {
+            border-left-color: var(--success-green);
+        }
+        .stat-card.warning {
+            border-left-color: var(--warning-orange);
+        }
+        .stat-card.danger {
+            border-left-color: var(--error-red);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+        .stat-change.up {
+            color: var(--success-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .stat-change.down {
+            color: var(--error-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .task-item:hover {
+            background: var(--bg-card);
+            transform: translateX(5px);
+        }
+        .task-priority {
+            width: 4px;
+            height: 40px;
+            border-radius: 2px;
+            margin-right: 1rem;
+        }
+        .task-priority.high {
+            background: var(--error-red);
+        }
+        .task-priority.medium {
+            background: var(--warning-orange);
+        }
+        .task-priority.low {
+            background: var(--success-green);
+        }
+        .notification-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+            transition: all 0.3s ease;
+        }
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .notification-item.error {
+            border-left-color: var(--error-red);
+        }
+        .notification-item.warning {
+            border-left-color: var(--warning-orange);
+        }
+        .notification-item.info {
+            border-left-color: var(--primary-blue);
+        }
+        .resource-bar {
+            height: 8px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .resource-progress {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .resource-progress.normal {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        .resource-progress.warning {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+        .resource-progress.danger {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+        @media (max-width: 768px) {
+            .dashboard-card {
+                margin-bottom: 1rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .quick-action-btn {
+                padding: 1rem;
+            }
+            .quick-action-btn i {
+                font-size: 1.5rem;
+            }
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .training-progress {
+            height: 10px;
+            background: var(--bg-card);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        .progress-bar.primary {
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
+        }
+        .progress-bar.success {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>缺陷预测系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-database me-1"></i>数据管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-brain me-1"></i>模型管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-bug me-1"></i>预测中心</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-chart-pie me-1"></i>分析报告</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-cog me-1"></i>系统管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid px-4 py-4">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-cogs"></i>
+                        模型训练配置
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">选择算法</label>
+                            <select class="form-select">
+                                <option>决策树</option>
+                                <option>神经网络</option>
+                                <option>随机森林</option>
+                                <option>支持向量机</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">学习率</label>
+                            <input type="range" class="form-range" min="0.001" max="0.1" step="0.001" value="0.01">
+                            <div class="d-flex justify-content-between">
+                                <small>0.001</small>
+                                <small class="fw-semibold">0.01</small>
+                                <small>0.1</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">层数</label>
+                            <input type="number" class="form-control" value="3" min="1" max="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">批次大小</label>
+                            <input type="number" class="form-control" value="32" min="1" max="512">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">训练轮数</label>
+                            <input type="number" class="form-control" value="100" min="1" max="1000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">验证集比例</label>
+                            <input type="range" class="form-range" min="0.1" max="0.5" step="0.05" value="0.2">
+                            <div class="d-flex justify-content-between">
+                                <small>10%</small>
+                                <small class="fw-semibold">20%</small>
+                                <small>50%</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-play-circle me-2"></i>启动训练
+                        </button>
+                        <button class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-save me-2"></i>保存配置
+                        </button>
+                    </div>
+                </div>
+                <div class="dashboard-card mt-4">
+                    <div class="card-title">
+                        <i class="fas fa-tachometer-alt"></i>
+                        训练进度监控
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>训练进度</span>
+                                    <span class="fw-semibold">65%</span>
+                                </div>
+                                <div class="training-progress">
+                                    <div class="progress-bar primary" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>准确率</span>
+                                    <span class="fw-semibold">89.2%</span>
+                                </div>
+                                <div class="training-progress">
+                                    <div class="progress-bar success" style="width: 89.2%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>损失值</span>
+                                    <span class="fw-semibold">0.342</span>
+                                </div>
+                                <div class="training-progress">
+                                    <div class="progress-bar warning" style="width: 34.2%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>召回率</span>
+                                    <span class="fw-semibold">86.7%</span>
+                                </div>
+                                <div class="training-progress">
+                                    <div class="progress-bar success" style="width: 86.7%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between">
+                            <small>开始时间: 2023-06-15 14:30</small>
+                            <small>预计完成: 2023-06-15 15:45</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="dashboard-card mb-4">
+                    <div class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        评估指标对比
+                    </div>
+                    <canvas id="evaluationChart" height="250"></canvas>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-history"></i>
+                        模型版本管理
+                    </div>
+                    <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">v1.2.3</div>
+                                <small class="text-muted">2023-06-10</small>
+                            </div>
+                            <span class="badge bg-success">当前</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">v1.2.2</div>
+                                <small class="text-muted">2023-06-05</small>
+                            </div>
+                            <span class="badge bg-secondary">历史</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">v1.2.1</div>
+                                <small class="text-muted">2023-05-28</small>
+                            </div>
+                            <span class="badge bg-secondary">历史</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">v1.1.0</div>
+                                <small class="text-muted">2023-05-15</small>
+                            </div>
+                            <span class="badge bg-secondary">历史</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4 mt-2">
+            <div class="col-lg-8">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-tasks"></i>
+                        异步任务队列
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>任务类型</th>
+                                    <th>状态</th>
+                                    <th>进度</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#TRN001</td>
+                                    <td>模型训练</td>
+                                    <td><span class="badge bg-primary">运行中</span></td>
+                                    <td>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 65%"></div>
+                                        </div>
+                                    </td>
+                                    <td>14:30</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">查看详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#VAL002</td>
+                                    <td>模型验证</td>
+                                    <td><span class="badge bg-success">已完成</span></td>
+                                    <td>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                    </td>
+                                    <td>14:25</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">查看详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#REP003</td>
+                                    <td>生成报告</td>
+                                    <td><span class="badge bg-warning">等待中</span></td>
+                                    <td>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                    </td>
+                                    <td>14:35</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">查看详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="dashboard-card">
+                    <div class="card-title">
+                        <i class="fas fa-file-alt"></i>
+                        最近训练日志
+                    </div>
+                    <div class="log-container" style="max-height: 400px; overflow-y: auto;">
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:32] 开始训练任务 #TRN001</small>
+                        </div>
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:33] 加载数据集完成</small>
+                        </div>
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:34] 模型初始化成功</small>
+                        </div>
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:35] 第1轮训练完成，损失: 0.856</small>
+                        </div>
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:36] 第2轮训练完成，损失: 0.723</small>
+                        </div>
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:37] 第3轮训练完成，损失: 0.612</small>
+                        </div>
+                        <div class="p-2 border-bottom">
+                            <small class="text-muted">[14:38] 正在计算评估指标...</small>
+                        </div>
+                        <div class="p-2">
+                            <small class="text-muted">[14:39] 评估完成，准确率: 89.2%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const evaluationCtx = document.getElementById('evaluationChart').getContext('2d');
+        new Chart(evaluationCtx, {
+            type: 'bar',
+            data: {
+                labels: ['准确率', '召回率', 'F1分数', 'AUC'],
+                datasets: [{
+                    label: '当前模型',
+                    data: [89.2, 86.7, 87.9, 92.3],
+                    backgroundColor: [
+                        '#4f46e5',
+                        '#10b981',
+                        '#8b5cf6',
+                        '#f59e0b'
+                    ],
+                    borderWidth: 0
+                }, {
+                    label: '基准模型',
+                    data: [85.1, 82.4, 83.6, 88.7],
+                    backgroundColor: [
+                        'rgba(79, 70, 229, 0.5)',
+                        'rgba(16, 185, 129, 0.5)',
+                        'rgba(139, 92, 246, 0.5)',
+                        'rgba(245, 158, 11, 0.5)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    }
+                }
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 200);
+                });
+            });
+            const notificationItems = document.querySelectorAll('.notification-item');
+            notificationItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    this.style.opacity = '0.7';
+                    setTimeout(() => {
+                        this.style.opacity = '';
+                    }, 300);
+                });
+            });
+            setInterval(() => {
+                const progressBars = document.querySelectorAll('.progress-bar');
+                progressBars.forEach(bar => {
+                    if (bar.classList.contains('primary') || bar.classList.contains('success')) {
+                        const currentWidth = parseInt(bar.style.width);
+                        if (currentWidth < 100) {
+                            const newWidth = Math.min(100, currentWidth + Math.random() * 2);
+                            bar.style.width = newWidth + '%';
+                            const parent = bar.parentElement.parentElement;
+                            const percentText = parent.querySelector('.fw-semibold');
+                            if (percentText && !isNaN(newWidth)) {
+                                percentText.textContent = Math.round(newWidth) + '%';
+                            }
+                        }
+                    }
+                });
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

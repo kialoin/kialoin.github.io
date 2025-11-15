@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户权限管理 - 日志分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e6ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+        .navbar-menu li {
+            position: relative;
+        }
+        .navbar-menu a {
+            text-decoration: none;
+            color: #606266;
+            font-size: 14px;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s;
+        }
+        .navbar-menu a:hover {
+            color: #1e88e5;
+        }
+        .navbar-menu a.active {
+            color: #1e88e5;
+            font-weight: 600;
+        }
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            min-width: 160px;
+            display: none;
+            margin-top: 4px;
+        }
+        .navbar-menu li:hover .dropdown {
+            display: block;
+        }
+        .dropdown a {
+            padding: 10px 16px;
+            display: block;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-dropdown {
+            position: relative;
+        }
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background-color: #f5f7fa;
+            border: 1px solid #e0e6ed;
+            border-radius: 2px;
+            font-size: 14px;
+            color: #606266;
+        }
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            min-width: 160px;
+            display: none;
+            margin-top: 4px;
+        }
+        .user-dropdown:hover .user-dropdown-menu {
+            display: block;
+        }
+        .main-container {
+            padding: 24px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .filter-section {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-item label {
+            font-size: 14px;
+            color: #606266;
+        }
+        .filter-item select,
+        .filter-item input {
+            padding: 6px 12px;
+            border: 1px solid #dcdfe6;
+            font-size: 14px;
+            color: #606266;
+            background-color: #fff;
+            outline: none;
+        }
+        .filter-item select:focus,
+        .filter-item input:focus {
+            border-color: #1e88e5;
+        }
+        .btn-primary {
+            background-color: #1e88e5;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #1976d2;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+        }
+        .card-subtitle {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 4px;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e0e6ed;
+        }
+        th {
+            background-color: #f5f7fa;
+            font-weight: 600;
+            color: #606266;
+        }
+        tr:hover {
+            background-color: #f8fbff;
+        }
+        .permission-card {
+            background-color: #fff;
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .permission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .permission-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+        }
+        .permission-item {
+            padding: 12px 16px;
+            border: 1px solid #e0e6ed;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+        .permission-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .permission-name {
+            font-weight: 600;
+            color: #303133;
+        }
+        .permission-type {
+            font-size: 12px;
+            color: #909399;
+        }
+        .permission-description {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 12px;
+        }
+        .permission-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-small {
+            padding: 4px 12px;
+            border: 1px solid #dcdfe6;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-small:hover {
+            background-color: #f5f7fa;
+        }
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+            }
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            日志分析系统
+        </div>
+        <ul class="navbar-menu">
+            <li>
+                <a href="#">
+                    <i class="fas fa-home"></i>
+                    首页
+                </a>
+            </li>
+            <li>
+                <a href="#" class="active">
+                    <i class="fas fa-users"></i>
+                    用户权限管理
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-file-alt"></i>
+                    日志管理
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </a>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-upload"></i> 数据导入</a>
+                    <a href="#"><i class="fas fa-search"></i> 查询分析</a>
+                </div>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-desktop"></i>
+                    监控中心
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-chart-bar"></i>
+                    可视化配置
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-shield-alt"></i>
+                    安全管理
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </a>
+                <div class="dropdown">
+                    <a href="#"><i class="fas fa-users-cog"></i> 权限管理</a>
+                    <a href="#"><i class="fas fa-exclamation-triangle"></i> 异常报告</a>
+                </div>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-cog"></i>
+                    系统设置
+                </a>
+            </li>
+        </ul>
+        <div class="user-menu">
+            <div class="user-dropdown">
+                <div class="user-dropdown-toggle">
+                    <i class="fas fa-user-circle"></i>
+                    <span>管理员</span>
+                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                </div>
+                <div class="user-dropdown-menu">
+                    <a href="#"><i class="fas fa-user"></i> 个人资料</a>
+                    <a href="#"><i class="fas fa-sign-out-alt"></i> 退出登录</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">用户权限管理</div>
+                    <div class="card-subtitle">提供角色和权限管理界面，管理员可创建/编辑角色、分配功能级和数据级权限</div>
+                </div>
+            </div>
+        </div>
+        <div class="permission-card">
+            <div class="permission-header">
+                <div class="permission-title">角色管理</div>
+                <button class="btn-primary">
+                    <i class="fas fa-plus"></i> 新建角色
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>角色名称</th>
+                            <th>描述</th>
+                            <th>用户数量</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>系统管理员</td>
+                            <td>拥有系统所有权限</td>
+                            <td>2</td>
+                            <td>2023-01-15</td>
+                            <td>
+                                <button class="btn-small"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="btn-small"><i class="fas fa-trash"></i> 删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>运营人员</td>
+                            <td>负责日常运营监控</td>
+                            <td>15</td>
+                            <td>2023-02-20</td>
+                            <td>
+                                <button class="btn-small"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="btn-small"><i class="fas fa-trash"></i> 删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>数据分析员</td>
+                            <td>负责数据统计分析</td>
+                            <td>8</td>
+                            <td>2023-03-10</td>
+                            <td>
+                                <button class="btn-small"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="btn-small"><i class="fas fa-trash"></i> 删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="permission-card">
+            <div class="permission-header">
+                <div class="permission-title">权限分配</div>
+                <button class="btn-primary">
+                    <i class="fas fa-sync"></i> 同步权限
+                </button>
+            </div>
+            <div class="permission-item">
+                <div class="permission-item-header">
+                    <div>
+                        <span class="permission-name">系统管理</span>
+                        <span class="permission-type">功能级权限</span>
+                    </div>
+                </div>
+                <div class="permission-description">
+                    包括用户管理、角色管理、权限配置等系统级操作权限
+                </div>
+                <div class="permission-actions">
+                    <button class="btn-small"><i class="fas fa-check-circle"></i> 分配给角色</button>
+                </div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-item-header">
+                    <div>
+                        <span class="permission-name">日志查询</span>
+                        <span class="permission-type">功能级权限</span>
+                    </div>
+                </div>
+                <div class="permission-description">
+                    允许查看各类日志数据的查询和导出权限
+                </div>
+                <div class="permission-actions">
+                    <button class="btn-small"><i class="fas fa-check-circle"></i> 分配给角色</button>
+                </div>
+            </div>
+            <div class="permission-item">
+                <div class="permission-item-header">
+                    <div>
+                        <span class="permission-name">数据隔离</span>
+                        <span class="permission-type">数据级权限</span>
+                    </div>
+                </div>
+                <div class="permission-description">
+                    控制不同用户对特定数据源的访问权限
+                </div>
+                <div class="permission-actions">
+                    <button class="btn-small"><i class="fas fa-check-circle"></i> 分配给角色</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">用户列表</div>
+                    <div class="card-subtitle">查看系统内所有用户及其角色信息</div>
+                </div>
+                <button class="btn-primary">
+                    <i class="fas fa-user-plus"></i> 添加用户
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th>最后登录</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>张三</td>
+                            <td>zhangsan@example.com</td>
+                            <td>系统管理员</td>
+                            <td><span style="color: #10b981;">启用</span></td>
+                            <td>2023-06-15 14:30</td>
+                            <td>
+                                <button class="btn-small"><i class="fas fa-edit"></i> 编辑</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>李四</td>
+                            <td>lisi@example.com</td>
+                            <td>运营人员</td>
+                            <td><span style="color: #10b981;">启用</span></td>
+                            <td>2023-06-15 10:15</td>
+                            <td>
+                                <button class="btn-small"><i class="fas fa-edit"></i> 编辑</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>王五</td>
+                            <td>wangwu@example.com</td>
+                            <td>数据分析员</td>
+                            <td><span style="color: #ef4444;">禁用</span></td>
+                            <td>-</td>
+                            <td>
+                                <button class="btn-small"><i class="fas fa-edit"></i> 编辑</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">权限审计日志</div>
+                    <div class="card-subtitle">记录所有权限变更操作，确保系统安全合规</div>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>操作用户</th>
+                            <th>操作类型</th>
+                            <th>操作对象</th>
+                            <th>详细信息</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>管理员</td>
+                            <td>权限分配</td>
+                            <td>张三</td>
+                            <td>分配系统管理员角色</td>
+                            <td>2023-06-15 14:30</td>
+                        </tr>
+                        <tr>
+                            <td>管理员</td>
+                            <td>角色创建</td>
+                            <td>数据分析员</td>
+                            <td>新建数据分析员角色</td>
+                            <td>2023-06-15 10:15</td>
+                        </tr>
+                        <tr>
+                            <td>李四</td>
+                            <td>权限修改</td>
+                            <td>日志查询</td>
+                            <td>修改日志查询权限</td>
+                            <td>2023-06-14 16:45</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">多租户数据隔离设置</div>
+                    <div class="card-subtitle">配置不同租户间的数据隔离策略</div>
+                </div>
+            </div>
+            <div style="padding: 16px; border: 1px solid #e0e6ed; border-radius: 4px;">
+                <p style="margin-bottom: 16px;">
+                    <strong>当前策略：</strong>基于组织架构的数据隔离
+                </p>
+                <p style="margin-bottom: 16px;">
+                    <strong>隔离规则：</strong>
+                    <ul>
+                        <li>不同部门用户只能访问本部门数据</li>
+                        <li>跨部门数据访问需申请特殊权限</li>
+                        <li>系统管理员拥有全部数据访问权限</li>
+                    </ul>
+                </p>
+                <button class="btn-primary">
+                    <i class="fas fa-cog"></i> 修改隔离策略
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

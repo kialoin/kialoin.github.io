@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能报告详情 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .main-container {
+            margin-top: 60px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .filter-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .filter-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .report-card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .report-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .report-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+        .report-content {
+            margin-bottom: 24px;
+        }
+        .report-section {
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+        }
+        .highlight-text {
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .prediction-chart {
+            height: 300px;
+            margin-top: 16px;
+        }
+        .annotation-section {
+            background-color: #f8fafc;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            border-radius: 4px;
+            margin-top: 24px;
+        }
+        .annotation-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .annotation-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .annotation-btn {
+            padding: 8px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .annotation-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .annotations-list {
+            list-style: none;
+        }
+        .annotation-item {
+            padding: 12px;
+            border-left: 3px solid #2563eb;
+            background-color: #fff;
+            margin-bottom: 12px;
+        }
+        .annotation-text {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .annotation-meta {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .action-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .action-btn.primary {
+            background-color: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .action-btn.primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        .last-update {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .report-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .report-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .action-bar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            .action-buttons {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据分析</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">智能报告</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">张</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">智能报告详情</h1>
+                <p class="page-subtitle">2024年客户满意度调查问卷 | 生成时间：2024-01-31 18:30:00</p>
+            </div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-item">
+                <span class="filter-label">报告类型：</span>
+                <select class="filter-select">
+                    <option>完整报告</option>
+                    <option selected>摘要报告</option>
+                    <option>深度分析报告</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <span class="filter-label">对比周期：</span>
+                <select class="filter-select">
+                    <option>上月同期</option>
+                    <option selected>上季度</option>
+                    <option>去年同期</option>
+                </select>
+            </div>
+            <button class="filter-btn">
+                <i class="fas fa-sync-alt"></i> 刷新报告
+            </button>
+        </div>
+        <div class="report-card">
+            <div class="report-header">
+                <h2 class="report-title">2024年Q1客户满意度分析报告</h2>
+                <div class="report-meta">
+                    <span><i class="fas fa-user"></i> 张三</span>
+                    <span><i class="fas fa-calendar"></i> 2024-01-31</span>
+                </div>
+            </div>
+            <div class="report-content">
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-comment-dots"></i> 文本分析洞察
+                    </h3>
+                    <div class="section-content">
+                        <p>通过对问卷中开放式问题的文本分析，我们发现以下关键洞察：</p>
+                        <ul>
+                            <li>关键词出现频率最高的词汇为：<span class="highlight-text">质量</span>（出现342次）和<span class="highlight-text">服务</span>（出现287次），表明用户最关注产品品质和服务体验。</li>
+                            <li>正面情感词占比达<span class="highlight-text">72%</span>，其中"满意"、"优秀"、"推荐"等词汇频繁出现。</li>
+                            <li>负面情感词主要集中在<span class="highlight-text">物流延迟</span>和<span class="highlight-text">客服响应慢</span>方面，需要重点关注。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-line"></i> 响应预测结果
+                    </h3>
+                    <div class="section-content">
+                        <p>基于历史数据和机器学习模型，我们对下一阶段的响应情况进行了预测：</p>
+                        <ul>
+                            <li>预计下月有效响应量将达到<span class="highlight-text">1,850份</span>，环比增长约<span class="highlight-text">18%</span>。</li>
+                            <li>平均完成时间预计将缩短至<span class="highlight-text">3.8分钟</span>，较本月减少<span class="highlight-text">0.4分钟</span>。</li>
+                            <li>完成率有望提升至<span class="highlight-text">92.3%</span>，主要得益于问卷界面优化和引导提示增强。</li>
+                        </ul>
+                        <div id="predictionChart" class="prediction-chart"></div>
+                    </div>
+                </div>
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-clock"></i> 完成时间估算
+                    </h3>
+                    <div class="section-content">
+                        <p>根据用户行为数据分析，我们对不同用户群体的问卷完成时间进行了建模：</p>
+                        <ul>
+                            <li><strong>年轻用户（18-25岁）</strong>：平均完成时间<span class="highlight-text">3.2分钟</span></li>
+                            <li><strong>中年用户（26-45岁）</strong>：平均完成时间<span class="highlight-text">4.1分钟</span></li>
+                            <li><strong>老年用户（46岁以上）</strong>：平均完成时间<span class="highlight-text">5.3分钟</span></li>
+                        </ul>
+                        <p>建议针对不同年龄层优化问卷结构，提高整体完成效率。</p>
+                    </div>
+                </div>
+                <div class="report-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-exchange-alt"></i> 历史数据对比
+                    </h3>
+                    <div class="section-content">
+                        <p>与上季度数据相比，本季度表现呈现以下特点：</p>
+                        <ul>
+                            <li>满意度评分从<span class="highlight-text">4.2</span>提升至<span class="highlight-text">4.5</span>，提升幅度为<span class="highlight-text">7.1%</span></li>
+                            <li>有效响应数量从<span class="highlight-text">1,020份</span>增加到<span class="highlight-text">1,234份</span>，增长率为<span class="highlight-text">20.9%</span></li>
+                            <li>平均完成时间从<span class="highlight-text">4.6分钟</span>缩短至<span class="highlight-text">4.2分钟</span>，效率提升<span class="highlight-text">8.7%</span></li>
+                        </ul>
+                        <p>整体表现优于预期，建议继续保持现有优化策略。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="annotation-section">
+                <h3 class="section-title">
+                    <i class="fas fa-sticky-note"></i> 添加注释
+                </h3>
+                <div class="annotation-form">
+                    <input type="text" class="annotation-input" placeholder="输入您的注释或备注...">
+                    <button class="annotation-btn">
+                        <i class="fas fa-plus"></i> 添加
+                    </button>
+                </div>
+                <ul class="annotations-list">
+                    <li class="annotation-item">
+                        <p class="annotation-text">建议将物流相关问题作为下期问卷的重点调研方向。</p>
+                        <p class="annotation-meta">张三 · 2024-01-31 17:45</p>
+                    </li>
+                    <li class="annotation-item">
+                        <p class="annotation-text">完成时间缩短的优化措施效果显著，值得推广到其他问卷中。</p>
+                        <p class="annotation-meta">李四 · 2024-01-31 16:20</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="action-bar">
+            <div class="action-buttons">
+                <button class="action-btn">
+                    <i class="fas fa-share-alt"></i> 分享报告
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-file-pdf"></i> 导出PDF
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-file-excel"></i> 导出Excel
+                </button>
+                <button class="action-btn primary">
+                    <i class="fas fa-download"></i> 下载报告
+                </button>
+            </div>
+            <div class="last-update">
+                <i class="fas fa-clock"></i> 最后更新：2024-01-31 18:30:00
+            </div>
+        </div>
+    </div>
+    <script>
+        const predictionChart = echarts.init(document.getElementById('predictionChart'));
+        const predictionOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['实际响应数', '预测响应数'],
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            series: [
+                {
+                    name: '实际响应数',
+                    type: 'line',
+                    data: [1020, 1100, 1234, 1300, 1450, 1580],
+                    itemStyle: {
+                        color: '#2563eb'
+                    },
+                    smooth: true
+                },
+                {
+                    name: '预测响应数',
+                    type: 'line',
+                    data: [1020, 1150, 1250, 1350, 1500, 1850],
+                    itemStyle: {
+                        color: '#10b981'
+                    },
+                    smooth: true
+                }
+            ]
+        };
+        predictionChart.setOption(predictionOption);
+        window.addEventListener('resize', function() {
+            predictionChart.resize();
+        });
+    </script>
+</body>
+</html>

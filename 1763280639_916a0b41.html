@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据挖掘可视化平台 - 用户管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e8ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin-right: auto;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+        .navbar-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        .navbar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .navbar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            width: 240px;
+            background-color: #fff;
+            border-right: 1px solid #e1e8ed;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+        .sidebar-title {
+            font-size: 12px;
+            color: #5f6368;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .sidebar-item {
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #5f6368;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .sidebar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .sidebar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .main-content {
+            margin-left: 240px;
+            margin-top: 60px;
+            padding: 24px;
+        }
+        .filter-bar {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 14px;
+            color: #5f6368;
+        }
+        .filter-select, .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            color: #2c3e50;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .filter-select:focus, .filter-input:focus {
+            border-color: #1a73e8;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1557b0;
+        }
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        .btn-secondary:hover {
+            background-color: #e8eaed;
+        }
+        .table-container {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .table-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #5f6368;
+            border-bottom: 1px solid #e1e8ed;
+            background-color: #f8f9fa;
+        }
+        .table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .table-actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            background-color: transparent;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .form-container {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .form-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            color: #2c3e50;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            border-color: #1a73e8;
+        }
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-col {
+            flex: 1;
+        }
+        .role-tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .role-admin {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .role-user {
+            background-color: #e6f4ea;
+            color: #188038;
+        }
+        .audit-log {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            padding: 24px;
+        }
+        .log-entry {
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            font-size: 12px;
+            color: #5f6368;
+            margin-bottom: 4px;
+        }
+        .log-message {
+            font-size: 14px;
+            color: #2c3e50;
+        }
+        .log-user {
+            font-weight: 500;
+            color: #1a73e8;
+        }
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .navbar-menu {
+                display: none;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .export-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            padding: 8px;
+            display: none;
+            z-index: 100;
+            min-width: 150px;
+        }
+        .export-menu.active {
+            display: block;
+        }
+        .export-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+        .export-option:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>数据挖掘可视化平台</span>
+        </div>
+        <ul class="navbar-menu">
+            <li class="navbar-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>仪表板</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-upload"></i>
+                <span>数据导入</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-cogs"></i>
+                <span>分析任务</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-file-alt"></i>
+                <span>报告生成</span>
+            </li>
+            <li class="navbar-item active">
+                <i class="fas fa-users"></i>
+                <span>用户管理</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-question-circle"></i>
+                <span>帮助文档</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+            </li>
+        </ul>
+    </nav>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">快速访问</div>
+            <div class="sidebar-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>概览分析</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-users"></i>
+                <span>用户行为</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>点击热力</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-route"></i>
+                <span>访问路径</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">数据筛选</div>
+            <div class="sidebar-item">
+                <i class="fas fa-calendar"></i>
+                <span>时间范围</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-filter"></i>
+                <span>高级筛选</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-tags"></i>
+                <span>标签分组</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">设置</div>
+            <div class="sidebar-item">
+                <i class="fas fa-palette"></i>
+                <span>主题设置</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-save"></i>
+                <span>保存配置</span>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <div class="filter-bar">
+            <div class="filter-group">
+                <h2 style="font-size: 20px; margin: 0;">用户管理</h2>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">用户列表</div>
+                <div class="table-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加用户</span>
+                    </button>
+                </div>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>最后登录</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>张三</td>
+                        <td>zhangsan@example.com</td>
+                        <td><span class="role-tag role-admin">管理员</span></td>
+                        <td>正常</td>
+                        <td>2023-05-15 14:30</td>
+                        <td class="table-actions-cell">
+                            <button class="action-btn"><i class="fas fa-edit"></i> 编辑</button>
+                            <button class="action-btn"><i class="fas fa-trash"></i> 删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td>李四</td>
+                        <td>lisi@example.com</td>
+                        <td><span class="role-tag role-user">普通用户</span></td>
+                        <td>正常</td>
+                        <td>2023-05-16 09:15</td>
+                        <td class="table-actions-cell">
+                            <button class="action-btn"><i class="fas fa-edit"></i> 编辑</button>
+                            <button class="action-btn"><i class="fas fa-trash"></i> 删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>003</td>
+                        <td>王五</td>
+                        <td>wangwu@example.com</td>
+                        <td><span class="role-tag role-user">普通用户</span></td>
+                        <td>禁用</td>
+                        <td>-</td>
+                        <td class="table-actions-cell">
+                            <button class="action-btn"><i class="fas fa-edit"></i> 编辑</button>
+                            <button class="action-btn"><i class="fas fa-trash"></i> 删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>004</td>
+                        <td>赵六</td>
+                        <td>zhaoliu@example.com</td>
+                        <td><span class="role-tag role-user">普通用户</span></td>
+                        <td>正常</td>
+                        <td>2023-05-14 16:45</td>
+                        <td class="table-actions-cell">
+                            <button class="action-btn"><i class="fas fa-edit"></i> 编辑</button>
+                            <button class="action-btn"><i class="fas fa-trash"></i> 删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="form-container">
+            <h3 class="form-title">用户信息编辑</h3>
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-input" value="张三">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label class="form-label">邮箱地址</label>
+                        <input type="email" class="form-input" value="zhangsan@example.com">
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label class="form-label">角色权限</label>
+                        <select class="form-input">
+                            <option>普通用户</option>
+                            <option selected>管理员</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label class="form-label">账户状态</label>
+                        <select class="form-input">
+                            <option>正常</option>
+                            <option>禁用</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">个性化设置</label>
+                <textarea class="form-input" rows="3">用户偏好设置...</textarea>
+            </div>
+            <button class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                <span>保存更改</span>
+            </button>
+        </div>
+        <div class="audit-log">
+            <h3 class="form-title">安全审计日志</h3>
+            <div class="log-entry">
+                <div class="log-time">2023-05-16 14:30:22</div>
+                <div class="log-message">用户 <span class="log-user">张三</span> 修改了密码</div>
+            </div>
+            <div class="log-entry">
+                <div class="log-time">2023-05-16 10:15:45</div>
+                <div class="log-message">用户 <span class="log-user">李四</span> 登录系统</div>
+            </div>
+            <div class="log-entry">
+                <div class="log-time">2023-05-15 16:22:10</div>
+                <div class="log-message">用户 <span class="log-user">王五</span> 被管理员禁用</div>
+            </div>
+            <div class="log-entry">
+                <div class="log-time">2023-05-15 09:30:55</div>
+                <div class="log-message">用户 <span class="log-user">赵六</span> 验证了邮箱地址</div>
+            </div>
+        </div>
+    </main>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+        }
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+        document.querySelectorAll('.navbar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.navbar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+        });
+    </script>
+</body>
+</html>

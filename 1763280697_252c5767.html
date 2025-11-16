@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据挖掘可视化平台 - 报告生成</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e8ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin-right: auto;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+        .navbar-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        .navbar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .navbar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            width: 240px;
+            background-color: #fff;
+            border-right: 1px solid #e1e8ed;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+        .sidebar-title {
+            font-size: 12px;
+            color: #5f6368;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .sidebar-item {
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #5f6368;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .sidebar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .sidebar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .main-content {
+            margin-left: 240px;
+            margin-top: 60px;
+            padding: 24px;
+        }
+        .report-generator {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .report-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .template-selector {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .template-option {
+            padding: 8px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .template-option:hover {
+            border-color: #1a73e8;
+            background-color: #f8f9fa;
+        }
+        .template-option.active {
+            border-color: #1a73e8;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .report-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .report-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        .content-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2c3e50;
+        }
+        .visualization-preview {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            height: 300px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5f6368;
+        }
+        .preview-placeholder {
+            text-align: center;
+        }
+        .preview-placeholder i {
+            font-size: 48px;
+            color: #c5c5c5;
+            margin-bottom: 16px;
+        }
+        .preview-placeholder p {
+            color: #5f6368;
+        }
+        .report-controls {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1557b0;
+        }
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        .btn-secondary:hover {
+            background-color: #e8eaed;
+        }
+        .btn-success {
+            background-color: #188038;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #12642c;
+        }
+        .report-preview {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .preview-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .preview-content {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 16px;
+            min-height: 400px;
+        }
+        .preview-content h3 {
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+        .preview-content p {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .preview-content ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+        .preview-content li {
+            margin-bottom: 8px;
+        }
+        .status-tracking {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .tracking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .tracking-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .status-list {
+            list-style: none;
+        }
+        .status-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .status-pending {
+            background-color: #ffcc00;
+            color: #333;
+        }
+        .status-processing {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .status-complete {
+            background-color: #188038;
+            color: white;
+        }
+        .status-error {
+            background-color: #d93025;
+            color: white;
+        }
+        .status-info {
+            flex-grow: 1;
+        }
+        .status-time {
+            font-size: 12px;
+            color: #5f6368;
+        }
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .navbar-menu {
+                display: none;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+        .export-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            padding: 8px;
+            display: none;
+            z-index: 100;
+            min-width: 150px;
+        }
+        .export-menu.active {
+            display: block;
+        }
+        .export-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+        .export-option:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>数据挖掘可视化平台</span>
+        </div>
+        <ul class="navbar-menu">
+            <li class="navbar-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>仪表板</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-upload"></i>
+                <span>数据导入</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-cogs"></i>
+                <span>分析任务</span>
+            </li>
+            <li class="navbar-item active">
+                <i class="fas fa-file-alt"></i>
+                <span>报告生成</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-users"></i>
+                <span>用户管理</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-question-circle"></i>
+                <span>帮助文档</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+            </li>
+        </ul>
+    </nav>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">快速访问</div>
+            <div class="sidebar-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>概览分析</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-users"></i>
+                <span>用户行为</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>点击热力</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-route"></i>
+                <span>访问路径</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">数据筛选</div>
+            <div class="sidebar-item">
+                <i class="fas fa-calendar"></i>
+                <span>时间范围</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-filter"></i>
+                <span>高级筛选</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-tags"></i>
+                <span>标签分组</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">设置</div>
+            <div class="sidebar-item">
+                <i class="fas fa-palette"></i>
+                <span>主题设置</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-save"></i>
+                <span>保存配置</span>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <div class="report-generator">
+            <div class="report-header">
+                <h2 class="report-title">报告生成与导出</h2>
+                <div class="template-selector">
+                    <div class="template-option active">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>PDF模板</span>
+                    </div>
+                    <div class="template-option">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Excel模板</span>
+                    </div>
+                    <div class="template-option">
+                        <i class="fas fa-file-word"></i>
+                        <span>Word模板</span>
+                    </div>
+                </div>
+            </div>
+            <div class="report-content">
+                <div class="content-panel">
+                    <h3 class="panel-title">可视化元素</h3>
+                    <div class="visualization-preview">
+                        <div class="preview-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>图表预览区域</p>
+                        </div>
+                    </div>
+                    <div class="report-controls">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-plus"></i>
+                            <span>添加图表</span>
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-edit"></i>
+                            <span>编辑内容</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="content-panel">
+                    <h3 class="panel-title">报告注释</h3>
+                    <textarea 
+                        class="filter-input" 
+                        style="width: 100%; height: 200px; resize: vertical;" 
+                        placeholder="在此添加您的报告注释和说明..."
+                    ></textarea>
+                    <div class="report-controls">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            <span>保存注释</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="report-controls">
+                <button class="btn btn-secondary">
+                    <i class="fas fa-eye"></i>
+                    <span>预览报告</span>
+                </button>
+                <button class="btn btn-success">
+                    <i class="fas fa-download"></i>
+                    <span>导出报告</span>
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-share-alt"></i>
+                    <span>分享报告</span>
+                </button>
+            </div>
+        </div>
+        <div class="report-preview">
+            <div class="preview-header">
+                <h3 class="preview-title">报告预览</h3>
+                <div class="preview-actions">
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-print"></i>
+                        <span>打印</span>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-content">
+                <h3>数据分析报告摘要</h3>
+                <p>本报告基于最近30天的用户行为数据进行分析，主要涵盖用户增长趋势、转化率分析以及热门页面等内容。</p>
+                <h3>关键发现</h3>
+                <ul>
+                    <li>用户总数达到12,543人，环比增长12.5%</li>
+                    <li>整体转化率为89.3%，较上周提升3.2%</li>
+                    <li>移动端访问占比最高，达到65%</li>
+                    <li>首页是访问量最高的页面，占总访问量的15%</li>
+                </ul>
+                <h3>建议措施</h3>
+                <p>建议进一步优化移动端用户体验，加强新用户引导流程，并针对高流量页面进行性能优化以提升用户满意度。</p>
+            </div>
+        </div>
+        <div class="status-tracking">
+            <div class="tracking-header">
+                <h3 class="tracking-title">异步报告生成状态跟踪</h3>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>刷新状态</span>
+                </button>
+            </div>
+            <ul class="status-list">
+                <li class="status-item">
+                    <div class="status-indicator status-complete">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="status-info">
+                        <div>数据收集完成</div>
+                        <div class="status-time">2023-06-15 14:30:22</div>
+                    </div>
+                </li>
+                <li class="status-item">
+                    <div class="status-indicator status-complete">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="status-info">
+                        <div>数据分析完成</div>
+                        <div class="status-time">2023-06-15 14:32:45</div>
+                    </div>
+                </li>
+                <li class="status-item">
+                    <div class="status-indicator status-processing">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="status-info">
+                        <div>报告生成中...</div>
+                        <div class="status-time">2023-06-15 14:35:10</div>
+                    </div>
+                </li>
+                <li class="status-item">
+                    <div class="status-indicator status-pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="status-info">
+                        <div>文件导出待处理</div>
+                        <div class="status-time">待处理</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </main>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+        }
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+        document.querySelectorAll('.navbar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.navbar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.querySelectorAll('.template-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.template-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.querySelector('.btn-secondary:nth-of-type(1)').addEventListener('click', function() {
+            alert('报告预览功能已启用。');
+        });
+        document.querySelector('.btn-success').addEventListener('click', function() {
+            showLoading();
+            setTimeout(() => {
+                hideLoading();
+                alert('报告已成功导出！');
+            }, 2000);
+        });
+        document.querySelector('.btn-secondary:nth-of-type(3)').addEventListener('click', function() {
+            alert('报告分享链接已生成。');
+        });
+    </script>
+</body>
+</html>

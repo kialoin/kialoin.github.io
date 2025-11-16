@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据挖掘可视化平台 - 用户注册</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e8ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin-right: auto;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+        .navbar-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        .navbar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .navbar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            width: 240px;
+            background-color: #fff;
+            border-right: 1px solid #e1e8ed;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+        .sidebar-title {
+            font-size: 12px;
+            color: #5f6368;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .sidebar-item {
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #5f6368;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .sidebar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .sidebar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .main-content {
+            margin-left: 240px;
+            margin-top: 60px;
+            padding: 24px;
+        }
+        .register-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .register-header h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .register-header p {
+            color: #5f6368;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            color: #2c3e50;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: #1a73e8;
+        }
+        .password-strength {
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        .strength-weak { color: #d93025; }
+        .strength-medium { color: #ea8600; }
+        .strength-strong { color: #188038; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1557b0;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #5f6368;
+        }
+        .login-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #d93025;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .register-container {
+                margin: 16px;
+                padding: 24px;
+            }
+            .navbar-menu {
+                display: none;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>数据挖掘可视化平台</span>
+        </div>
+        <ul class="navbar-menu">
+            <li class="navbar-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>仪表板</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-upload"></i>
+                <span>数据导入</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-cogs"></i>
+                <span>分析任务</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-file-alt"></i>
+                <span>报告生成</span>
+            </li>
+            <li class="navbar-item active">
+                <i class="fas fa-users"></i>
+                <span>用户管理</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-question-circle"></i>
+                <span>帮助文档</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+            </li>
+        </ul>
+    </nav>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">快速访问</div>
+            <div class="sidebar-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>概览分析</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-users"></i>
+                <span>用户行为</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>点击热力</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-route"></i>
+                <span>访问路径</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">数据筛选</div>
+            <div class="sidebar-item">
+                <i class="fas fa-calendar"></i>
+                <span>时间范围</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-filter"></i>
+                <span>高级筛选</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-tags"></i>
+                <span>标签分组</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">设置</div>
+            <div class="sidebar-item">
+                <i class="fas fa-palette"></i>
+                <span>主题设置</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-save"></i>
+                <span>保存配置</span>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <div class="register-container">
+            <div class="register-header">
+                <h2>创建账户</h2>
+                <p>请填写以下信息完成注册</p>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" class="form-control" placeholder="请输入用户名" required>
+                    <div class="error-message" id="username-error">用户名不能为空</div>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱地址</label>
+                    <input type="email" id="email" class="form-control" placeholder="请输入邮箱地址" required>
+                    <div class="error-message" id="email-error">请输入有效的邮箱地址</div>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" class="form-control" placeholder="请输入密码" required>
+                    <div class="password-strength" id="password-strength">密码强度: <span></span></div>
+                    <div class="error-message" id="password-error">密码长度至少8位，需包含字母和数字</div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="请再次输入密码" required>
+                    <div class="error-message" id="confirm-password-error">两次输入的密码不一致</div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i>
+                    <span>注册账户</span>
+                </button>
+            </form>
+            <div class="login-link">
+                已有账户？<a href="#">立即登录</a>
+            </div>
+        </div>
+    </main>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        function checkPasswordStrength(password) {
+            const strengthIndicator = document.getElementById('password-strength').querySelector('span');
+            if (password.length < 8) {
+                strengthIndicator.textContent = '弱';
+                strengthIndicator.className = 'strength-weak';
+                return 'weak';
+            } else if (password.length >= 8 && password.match(/^(?=.*[A-Za-z])(?=.*\d)/)) {
+                strengthIndicator.textContent = '强';
+                strengthIndicator.className = 'strength-strong';
+                return 'strong';
+            } else {
+                strengthIndicator.textContent = '中等';
+                strengthIndicator.className = 'strength-medium';
+                return 'medium';
+            }
+        }
+        document.getElementById('password').addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            let isValid = true;
+            if (username === '') {
+                document.getElementById('username-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('username-error').style.display = 'none';
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('email-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('email-error').style.display = 'none';
+            }
+            if (password.length < 8 || !password.match(/^(?=.*[A-Za-z])(?=.*\d)/)) {
+                document.getElementById('password-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('password-error').style.display = 'none';
+            }
+            if (password !== confirmPassword) {
+                document.getElementById('confirm-password-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('confirm-password-error').style.display = 'none';
+            }
+            if (isValid) {
+                alert('注册成功！即将跳转到登录页面...');
+                setTimeout(() => {
+                    window.location.href = '#';
+                }, 1000);
+            }
+        });
+        document.querySelectorAll('.navbar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.navbar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

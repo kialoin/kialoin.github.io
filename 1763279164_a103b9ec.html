@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析仪表盘 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .main-container {
+            margin-top: 60px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .filter-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .filter-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 24px;
+        }
+        .stat-content {
+            flex: 1;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .stat-change {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .stat-change.positive {
+            color: #10b981;
+        }
+        .stat-change.negative {
+            color: #ef4444;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .chart-card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 20px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .chart-action-btn {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .chart-action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+        }
+        .ai-insights {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .insights-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .insights-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .ai-badge {
+            padding: 2px 8px;
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 12px;
+            border-radius: 2px;
+        }
+        .insights-list {
+            list-style: none;
+        }
+        .insight-item {
+            padding: 12px;
+            border-left: 3px solid #2563eb;
+            background-color: #f8fafc;
+            margin-bottom: 12px;
+        }
+        .insight-text {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .insight-highlight {
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .action-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .action-btn.primary {
+            background-color: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .action-btn.primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        .last-update {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">数据分析</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">智能报告</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">张</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">数据分析仪表盘</h1>
+                <p class="page-subtitle">数据可视化核心界面，使用图表展示问卷数据的统计分析结果，包括响应分布、趋势分析、交叉表等。集成AI智能洞察报告生成功能，自动高亮关键数据点，并支持自定义筛选和时间段选择。</p>
+            </div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-item">
+                <span class="filter-label">时间段：</span>
+                <select class="filter-select">
+                    <option>最近7天</option>
+                    <option selected>最近30天</option>
+                    <option>最近90天</option>
+                    <option>自定义</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <span class="filter-label">交叉分析：</span>
+                <select class="filter-select">
+                    <option>无</option>
+                    <option>按年龄段</option>
+                    <option>按性别</option>
+                    <option>按地区</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <span class="filter-label">问卷版本：</span>
+                <select class="filter-select">
+                    <option>全部版本</option>
+                    <option selected>V2.0</option>
+                    <option>V1.0</option>
+                </select>
+            </div>
+            <button class="filter-btn">
+                <i class="fas fa-filter"></i> 应用筛选
+            </button>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">1,234</div>
+                    <div class="stat-label">总响应数</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12.5% 较上月
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">87.3%</div>
+                    <div class="stat-label">完成率</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 3.2% 较上月
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">4.2</div>
+                    <div class="stat-label">平均完成时间(分钟)</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i> 8.1% 较上月
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">4.5</div>
+                    <div class="stat-label">满意度评分</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 0.3 较上月
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">满意度分布</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button class="chart-action-btn">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="pieChart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">年龄段分布</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button class="chart-action-btn">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="barChart" class="chart-container"></div>
+            </div>
+        </div>
+        <div class="chart-card" style="margin-bottom: 24px;">
+            <div class="chart-header">
+                <h3 class="chart-title">响应趋势分析</h3>
+                <div class="chart-actions">
+                    <button class="chart-action-btn">
+                        <i class="fas fa-download"></i> 导出
+                    </button>
+                    <button class="chart-action-btn">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="lineChart" style="width: 100%; height: 350px;"></div>
+        </div>
+        <div class="ai-insights">
+            <div class="insights-header">
+                <h3 class="insights-title">
+                    <i class="fas fa-brain" style="color: #2563eb;"></i> AI智能洞察
+                </h3>
+                <span class="ai-badge">AI分析</span>
+            </div>
+            <ul class="insights-list">
+                <li class="insight-item">
+                    <p class="insight-text">
+                        关键发现：<span class="insight-highlight">70%</span> 的受访者对我们的产品质量表示满意，其中<span class="insight-highlight">18-25岁</span>年龄段的满意度最高，达到<span class="insight-highlight">85%</span>。建议继续加强年轻用户群体的营销投入。
+                    </p>
+                </li>
+                <li class="insight-item">
+                    <p class="insight-text">
+                        异常检测：发现<span class="insight-highlight">32个</span>来自同一IP地址的重复提交，完成时间均小于<span class="insight-highlight">30秒</span>，疑似无效数据，建议进行数据清洗。
+                    </p>
+                </li>
+                <li class="insight-item">
+                    <p class="insight-text">
+                        趋势预测：基于历史数据分析，预计下月响应量将增长<span class="insight-highlight">15-20%</span>，建议提前准备服务器资源以应对流量高峰。
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="action-bar">
+            <div class="action-buttons">
+                <button class="action-btn">
+                    <i class="fas fa-share-alt"></i> 分享报告
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-file-pdf"></i> 导出PDF
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-file-excel"></i> 导出Excel
+                </button>
+                <button class="action-btn primary">
+                    <i class="fas fa-sync-alt"></i> 刷新数据
+                </button>
+            </div>
+            <div class="last-update">
+                <i class="fas fa-clock"></i> 最后更新：2024-01-31 18:30:00
+            </div>
+        </div>
+    </div>
+    <script>
+        const pieChart = echarts.init(document.getElementById('pieChart'));
+        const pieOption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            series: [
+                {
+                    name: '满意度',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 2,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 18,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        { value: 435, name: '非常满意', itemStyle: { color: '#2563eb' } },
+                        { value: 310, name: '满意', itemStyle: { color: '#60a5fa' } },
+                        { value: 234, name: '一般', itemStyle: { color: '#93c5fd' } },
+                        { value: 135, name: '不满意', itemStyle: { color: '#dbeafe' } },
+                        { value: 120, name: '非常不满意', itemStyle: { color: '#eff6ff' } }
+                    ]
+                }
+            ]
+        };
+        pieChart.setOption(pieOption);
+        const barChart = echarts.init(document.getElementById('barChart'));
+        const barOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['18-25岁', '26-35岁', '36-45岁', '46-55岁', '55岁以上'],
+                axisTick: {
+                    alignWithLabel: true
+                },
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            series: [
+                {
+                    name: '响应数',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: [410, 380, 290, 150, 104],
+                    itemStyle: {
+                        color: '#2563eb',
+                        borderRadius: [2, 2, 0, 0]
+                    }
+                }
+            ]
+        };
+        barChart.setOption(barOption);
+        const lineChart = echarts.init(document.getElementById('lineChart'));
+        const lineOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['每日响应数', '完成率'],
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['1月1日', '1月5日', '1月10日', '1月15日', '1月20日', '1月25日', '1月31日'],
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '响应数',
+                    position: 'left',
+                    axisLabel: {
+                        fontSize: 12
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '完成率(%)',
+                    position: 'right',
+                    axisLabel: {
+                        fontSize: 12,
+                        formatter: '{value}%'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '每日响应数',
+                    type: 'line',
+                    smooth: true,
+                    data: [120, 132, 101, 134, 90, 230, 210],
+                    itemStyle: {
+                        color: '#2563eb'
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(37, 99, 235, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(37, 99, 235, 0.05)'
+                            }]
+                        }
+                    }
+                },
+                {
+                    name: '完成率',
+                    type: 'line',
+                    smooth: true,
+                    yAxisIndex: 1,
+                    data: [85, 87, 84, 88, 86, 89, 87],
+                    itemStyle: {
+                        color: '#10b981'
+                    }
+                }
+            ]
+        };
+        lineChart.setOption(lineOption);
+        window.addEventListener('resize', function() {
+            pieChart.resize();
+            barChart.resize();
+            lineChart.resize();
+        });
+    </script>
+</body>
+</html>

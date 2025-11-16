@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录注册 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: #333;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .auth-container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .auth-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        .auth-toggle {
+            display: flex;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 10px 0;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .toggle-btn.active {
+            background-color: #2563eb;
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            cursor: pointer;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+        .auth-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .auth-btn.secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        .auth-btn.secondary:hover {
+            background-color: #e5e7eb;
+        }
+        .social-login {
+            margin-top: 24px;
+        }
+        .social-title {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .social-title::before,
+        .social-title::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background-color: #d1d5db;
+        }
+        .social-title::before {
+            left: 0;
+        }
+        .social-title::after {
+            right: 0;
+        }
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6;
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .social-icon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .social-icon.wechat:hover {
+            background-color: #07c160;
+            color: #fff;
+        }
+        .social-icon.weibo:hover {
+            background-color: #e6162d;
+            color: #fff;
+        }
+        .forgot-password {
+            text-align: center;
+            margin-top: 16px;
+        }
+        .forgot-password a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .forgot-password a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .auth-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            .nav-menu {
+                display: none;
+            }
+            .navbar {
+                padding: 0 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据分析</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">智能报告</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">张</div>
+        </div>
+    </nav>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h2 class="auth-title">欢迎回来</h2>
+            <p class="auth-subtitle">请登录您的账户</p>
+        </div>
+        <div class="auth-toggle">
+            <button class="toggle-btn active" onclick="switchForm('login')">登录</button>
+            <button class="toggle-btn" onclick="switchForm('register')">注册</button>
+        </div>
+        <form id="loginForm" class="auth-form">
+            <div class="form-group">
+                <label class="form-label">用户名或邮箱</label>
+                <input type="text" class="form-input" placeholder="请输入用户名或邮箱" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">密码</label>
+                <div class="password-container">
+                    <input type="password" class="form-input" id="loginPassword" placeholder="请输入密码" required>
+                    <span class="toggle-password" onclick="togglePassword('loginPassword')">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="auth-btn">登录</button>
+            <div class="forgot-password">
+                <a href="#">忘记密码？</a>
+            </div>
+        </form>
+        <form id="registerForm" class="auth-form" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">用户名</label>
+                <input type="text" class="form-input" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">邮箱</label>
+                <input type="email" class="form-input" placeholder="请输入邮箱地址" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">密码</label>
+                <div class="password-container">
+                    <input type="password" class="form-input" id="registerPassword" placeholder="请输入密码" required>
+                    <span class="toggle-password" onclick="togglePassword('registerPassword')">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">确认密码</label>
+                <div class="password-container">
+                    <input type="password" class="form-input" id="confirmPassword" placeholder="请再次输入密码" required>
+                    <span class="toggle-password" onclick="togglePassword('confirmPassword')">
+                        <i class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="auth-btn">注册</button>
+        </form>
+        <div class="social-login">
+            <div class="social-title">或使用以下方式登录</div>
+            <div class="social-icons">
+                <div class="social-icon wechat">
+                    <i class="fab fa-weixin"></i>
+                </div>
+                <div class="social-icon weibo">
+                    <i class="fab fa-weibo"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function switchForm(type) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const toggleBtns = document.querySelectorAll('.toggle-btn');
+            if (type === 'login') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                toggleBtns[0].classList.add('active');
+                toggleBtns[1].classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                toggleBtns[1].classList.add('active');
+                toggleBtns[0].classList.remove('active');
+            }
+        }
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.nextElementSibling.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('登录功能已就绪，实际应用中将进行JWT认证');
+        });
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('注册功能已就绪，实际应用中将进行用户注册');
+        });
+        document.querySelector('.wechat').addEventListener('click', function() {
+            alert('微信登录功能已就绪');
+        });
+        document.querySelector('.weibo').addEventListener('click', function() {
+            alert('微博登录功能已就绪');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问卷设计器 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .main-container {
+            margin-top: 60px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .toolbar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .tool-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .tool-btn {
+            padding: 8px 16px;
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tool-btn:hover {
+            background-color: #e5e7eb;
+            border-color: #9ca3af;
+        }
+        .tool-btn.active {
+            background-color: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .designer-container {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            border-radius: 4px;
+        }
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .question-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .question-type {
+            padding: 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .question-type:hover {
+            border-color: #2563eb;
+            background-color: #f0f7ff;
+        }
+        .question-type i {
+            font-size: 24px;
+            color: #2563eb;
+            margin-bottom: 8px;
+        }
+        .question-type span {
+            font-size: 14px;
+            color: #374151;
+        }
+        .design-area {
+            flex: 1;
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 24px;
+            border-radius: 4px;
+        }
+        .design-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .design-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .preview-btn {
+            padding: 8px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .preview-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .preview-container {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 4px;
+            padding: 24px;
+            min-height: 400px;
+        }
+        .question-item {
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .question-type-tag {
+            padding: 2px 8px;
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 12px;
+            border-radius: 2px;
+        }
+        .question-content {
+            margin-bottom: 12px;
+        }
+        .question-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .option-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+        .question-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .action-btn {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .property-panel {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+        .property-group {
+            margin-bottom: 16px;
+        }
+        .property-label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .property-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .property-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .action-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .action-btn.primary {
+            background-color: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .action-btn.primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        .last-update {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .designer-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .question-types {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">问卷设计器</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">智能报告</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">张</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">问卷设计器</h1>
+                <p class="page-subtitle">拖拽式问卷创建界面，支持多种题型和智能逻辑跳转</p>
+            </div>
+        </div>
+        <div class="toolbar">
+            <div class="tool-group">
+                <span class="tool-label">操作：</span>
+                <button class="tool-btn active">
+                    <i class="fas fa-plus"></i> 添加题目
+                </button>
+                <button class="tool-btn">
+                    <i class="fas fa-save"></i> 保存问卷
+                </button>
+                <button class="tool-btn">
+                    <i class="fas fa-copy"></i> 复制问卷
+                </button>
+            </div>
+            <div class="tool-group">
+                <span class="tool-label">视图：</span>
+                <button class="tool-btn">
+                    <i class="fas fa-eye"></i> 预览模式
+                </button>
+                <button class="tool-btn">
+                    <i class="fas fa-code"></i> 代码模式
+                </button>
+            </div>
+        </div>
+        <div class="designer-container">
+            <div class="sidebar">
+                <h3 class="sidebar-title">题型选择</h3>
+                <div class="question-types">
+                    <div class="question-type">
+                        <i class="fas fa-dot-circle"></i>
+                        <span>单选题</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-check-square"></i>
+                        <span>多选题</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-font"></i>
+                        <span>文本题</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-star"></i>
+                        <span>评分题</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-list"></i>
+                        <span>下拉题</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-calendar"></i>
+                        <span>日期题</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>地理位置</span>
+                    </div>
+                    <div class="question-type">
+                        <i class="fas fa-image"></i>
+                        <span>图片题</span>
+                    </div>
+                </div>
+            </div>
+            <div class="design-area">
+                <div class="design-header">
+                    <h3 class="design-title">问卷设计区</h3>
+                    <button class="preview-btn">
+                        <i class="fas fa-eye"></i> 预览问卷
+                    </button>
+                </div>
+                <div class="preview-container">
+                    <div class="question-item">
+                        <div class="question-header">
+                            <div class="question-title">1. 您的年龄是？</div>
+                            <div class="question-type-tag">单选题</div>
+                        </div>
+                        <div class="question-content">
+                            <div class="question-options">
+                                <div class="option-item">
+                                    <input type="radio" name="q1" id="q1a">
+                                    <label for="q1a" class="option-input">18-25岁</label>
+                                </div>
+                                <div class="option-item">
+                                    <input type="radio" name="q1" id="q1b">
+                                    <label for="q1b" class="option-input">26-35岁</label>
+                                </div>
+                                <div class="option-item">
+                                    <input type="radio" name="q1" id="q1c">
+                                    <label for="q1c" class="option-input">36-45岁</label>
+                                </div>
+                                <div class="option-item">
+                                    <input type="radio" name="q1" id="q1d">
+                                    <label for="q1d" class="option-input">46-55岁</label>
+                                </div>
+                                <div class="option-item">
+                                    <input type="radio" name="q1" id="q1e">
+                                    <label for="q1e" class="option-input">55岁以上</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="question-actions">
+                            <button class="action-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="question-item">
+                        <div class="question-header">
+                            <div class="question-title">2. 您对我们的产品满意度如何？</div>
+                            <div class="question-type-tag">评分题</div>
+                        </div>
+                        <div class="question-content">
+                            <div class="question-options">
+                                <div class="option-item">
+                                    <input type="range" min="1" max="5" value="3" class="option-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="question-actions">
+                            <button class="action-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="question-item">
+                        <div class="question-header">
+                            <div class="question-title">3. 请描述您对我们服务的看法</div>
+                            <div class="question-type-tag">文本题</div>
+                        </div>
+                        <div class="question-content">
+                            <div class="question-options">
+                                <div class="option-item">
+                                    <textarea class="option-input" rows="3" placeholder="请输入您的意见..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="question-actions">
+                            <button class="action-btn">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="property-panel">
+            <h3 class="panel-title">属性设置</h3>
+            <div class="property-group">
+                <label class="property-label">题干内容</label>
+                <input type="text" class="property-input" value="您的年龄是？">
+            </div>
+            <div class="property-group">
+                <label class="property-label">字体大小</label>
+                <input type="number" class="property-input" value="14">
+            </div>
+            <div class="property-group">
+                <label class="property-label">字体颜色</label>
+                <input type="color" class="property-input" value="#000000">
+            </div>
+            <div class="property-group">
+                <div class="property-checkbox">
+                    <input type="checkbox" id="required">
+                    <label for="required">必答题</label>
+                </div>
+                <div class="property-checkbox">
+                    <input type="checkbox" id="logic">
+                    <label for="logic">启用逻辑跳转</label>
+                </div>
+            </div>
+        </div>
+        <div class="action-bar">
+            <div class="action-buttons">
+                <button class="action-btn">
+                    <i class="fas fa-save"></i> 保存问卷
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-share-alt"></i> 发布问卷
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-copy"></i> 复制问卷
+                </button>
+                <button class="action-btn primary">
+                    <i class="fas fa-cloud-upload-alt"></i> 上传模板
+                </button>
+            </div>
+            <div class="last-update">
+                <i class="fas fa-clock"></i> 自动保存：2024-01-31 18:30:00
+            </div>
+        </div>
+    </div>
+</body>
+</html>

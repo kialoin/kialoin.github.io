@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帮助与支持 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .main-container {
+            margin-top: 60px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 20px;
+            border-radius: 6px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .card-content {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .card-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .card-content a:hover {
+            text-decoration: underline;
+        }
+        .faq-section {
+            margin-bottom: 24px;
+        }
+        .faq-item {
+            margin-bottom: 16px;
+            border-bottom: 1px solid #e1e4e8;
+            padding-bottom: 16px;
+        }
+        .faq-question {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .faq-answer {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .feedback-form {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .submit-btn {
+            padding: 12px 24px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #1d4ed8;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据分析</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">帮助与支持</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">张</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">帮助与支持</h1>
+                <p class="page-subtitle">获取使用帮助、查看常见问题或联系我们</p>
+            </div>
+        </div>
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3 class="card-title">用户帮助文档</h3>
+                </div>
+                <div class="card-content">
+                    <p>详细的平台使用指南和操作说明，帮助您快速上手。</p>
+                    <p><a href="#"><i class="fas fa-external-link-alt"></i> 查看完整文档</a></p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3 class="card-title">常见问题解答（FAQ）</h3>
+                </div>
+                <div class="card-content">
+                    <p>解决您在使用过程中遇到的常见问题。</p>
+                    <p><a href="#"><i class="fas fa-external-link-alt"></i> 查看FAQ</a></p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="card-title">联系支持团队</h3>
+                </div>
+                <div class="card-content">
+                    <p>通过以下方式联系我们获得技术支持：</p>
+                    <p><i class="fas fa-envelope"></i> support@example.com</p>
+                    <p><i class="fas fa-phone"></i> 400-123-4567</p>
+                    <p><a href="#"><i class="fas fa-comment"></i> 在线客服</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3 class="card-title">系统限制说明</h3>
+            </div>
+            <div class="card-content">
+                <ul style="padding-left: 20px;">
+                    <li>单份问卷最多可包含 <strong>100</strong> 个题目</li>
+                    <li>同时支持 <strong>500</strong> 个用户并发参与问卷填写</li>
+                    <li>问卷可设置最大参与人数为 <strong>10,000</strong> 人</li>
+                    <li>单个题目的文字长度限制为 <strong>500</strong> 字符</li>
+                    <li>问卷发布后可编辑的时间窗口为 <strong>24小时</strong></li>
+                </ul>
+            </div>
+        </div>
+        <div class="faq-section">
+            <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 20px;">常见问题</h3>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <i class="fas fa-chevron-right"></i>
+                    如何创建一份新的问卷？
+                </div>
+                <div class="faq-answer">
+                    登录后台后，在左侧菜单点击“问卷列表”，然后点击“新建问卷”按钮，按照向导完成问卷创建流程。
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <i class="fas fa-chevron-right"></i>
+                    问卷可以设置哪些权限控制？
+                </div>
+                <div class="faq-answer">
+                    支持设置公开/私有访问、密码保护、时间范围限制等权限控制选项，确保问卷安全可控。
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <i class="fas fa-chevron-right"></i>
+                    如何导出问卷数据？
+                </div>
+                <div class="faq-answer">
+                    在问卷结果页面，点击右上角的“导出”按钮，可以选择导出为 Excel 或 PDF 格式。
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <i class="fas fa-chevron-right"></i>
+                    问卷的回收率如何计算？
+                </div>
+                <div class="faq-answer">
+                    回收率 = （有效回答数 / 目标样本数）× 100%，其中有效回答指符合要求的完整回答。
+                </div>
+            </div>
+        </div>
+        <div class="feedback-form">
+            <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 20px;">反馈与建议</h3>
+            <div class="form-group">
+                <label class="form-label">您的姓名</label>
+                <input type="text" class="form-input" placeholder="请输入您的姓名">
+            </div>
+            <div class="form-group">
+                <label class="form-label">联系方式（邮箱/电话）</label>
+                <input type="text" class="form-input" placeholder="请输入您的联系方式">
+            </div>
+            <div class="form-group">
+                <label class="form-label">反馈类型</label>
+                <select class="form-input">
+                    <option>功能建议</option>
+                    <option>问题报告</option>
+                    <option>使用困惑</option>
+                    <option>其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">详细描述</label>
+                <textarea class="form-textarea" placeholder="请详细描述您遇到的问题或提出的建议..."></textarea>
+            </div>
+            <button class="submit-btn">
+                <i class="fas fa-paper-plane"></i> 提交反馈
+            </button>
+        </div>
+    </div>
+</body>
+</html>

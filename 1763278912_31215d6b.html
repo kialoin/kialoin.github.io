@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问卷列表管理 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .main-container {
+            margin-top: 60px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .filter-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .filter-input {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            background-color: #fff;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .filter-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .questionnaire-table {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 16px;
+            background-color: #f8fafc;
+            font-weight: 600;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 16px;
+            border-bottom: 1px solid #e1e4e8;
+            align-items: center;
+        }
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 2px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-draft {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-published {
+            background-color: #d1fae5;
+            color: #047857;
+        }
+        .status-ended {
+            background-color: #f3e8ff;
+            color: #7e22ce;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .action-btn.edit {
+            color: #2563eb;
+        }
+        .action-btn.copy {
+            color: #10b981;
+        }
+        .action-btn.delete {
+            color: #ef4444;
+        }
+        .action-btn.view {
+            color: #8b5cf6;
+        }
+        .action-btn.share {
+            color: #f59e0b;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .page-btn:hover,
+        .page-btn.active {
+            background-color: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .create-btn {
+            padding: 10px 20px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .create-btn:hover {
+            background-color: #1d4ed8;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .table-header,
+            .table-row {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas: 
+                    "name status"
+                    "date actions";
+            }
+            .table-header > div:nth-child(1),
+            .table-row > div:nth-child(1) {
+                grid-area: name;
+            }
+            .table-header > div:nth-child(2),
+            .table-row > div:nth-child(2) {
+                grid-area: status;
+            }
+            .table-header > div:nth-child(3),
+            .table-row > div:nth-child(3) {
+                grid-area: date;
+            }
+            .table-header > div:nth-child(4),
+            .table-row > div:nth-child(4) {
+                grid-area: actions;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据分析</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">智能报告</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">张</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">问卷列表管理</h1>
+                <p class="page-subtitle">管理您创建的所有问卷，支持按状态筛选和搜索</p>
+            </div>
+            <button class="create-btn">
+                <i class="fas fa-plus"></i> 创建新问卷
+            </button>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-item">
+                <span class="filter-label">状态：</span>
+                <select class="filter-select">
+                    <option>全部状态</option>
+                    <option>草稿</option>
+                    <option>发布中</option>
+                    <option>已结束</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <span class="filter-label">搜索：</span>
+                <input type="text" class="filter-input" placeholder="输入问卷名称或描述">
+            </div>
+            <button class="filter-btn">
+                <i class="fas fa-search"></i> 搜索
+            </button>
+        </div>
+        <div class="questionnaire-table">
+            <div class="table-header">
+                <div>问卷名称</div>
+                <div>状态</div>
+                <div>创建时间</div>
+                <div>操作</div>
+            </div>
+            <div class="table-row">
+                <div>2024年客户满意度调查问卷</div>
+                <div><span class="status-badge status-published">发布中</span></div>
+                <div>2024-01-15</div>
+                <div class="actions">
+                    <button class="action-btn edit"><i class="fas fa-edit"></i> 编辑</button>
+                    <button class="action-btn copy"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="action-btn view"><i class="fas fa-chart-bar"></i> 查看统计</button>
+                    <button class="action-btn share"><i class="fas fa-share-alt"></i> 分享</button>
+                </div>
+            </div>
+            <div class="table-row">
+                <div>产品使用体验调研</div>
+                <div><span class="status-badge status-draft">草稿</span></div>
+                <div>2024-01-20</div>
+                <div class="actions">
+                    <button class="action-btn edit"><i class="fas fa-edit"></i> 编辑</button>
+                    <button class="action-btn copy"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="action-btn delete"><i class="fas fa-trash"></i> 删除</button>
+                </div>
+            </div>
+            <div class="table-row">
+                <div>员工满意度调查</div>
+                <div><span class="status-badge status-ended">已结束</span></div>
+                <div>2024-01-01</div>
+                <div class="actions">
+                    <button class="action-btn view"><i class="fas fa-chart-bar"></i> 查看统计</button>
+                    <button class="action-btn share"><i class="fas fa-share-alt"></i> 分享</button>
+                </div>
+            </div>
+            <div class="table-row">
+                <div>市场调研问卷</div>
+                <div><span class="status-badge status-published">发布中</span></div>
+                <div>2024-01-10</div>
+                <div class="actions">
+                    <button class="action-btn edit"><i class="fas fa-edit"></i> 编辑</button>
+                    <button class="action-btn copy"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="action-btn view"><i class="fas fa-chart-bar"></i> 查看统计</button>
+                    <button class="action-btn share"><i class="fas fa-share-alt"></i> 分享</button>
+                </div>
+            </div>
+            <div class="table-row">
+                <div>新用户引导反馈</div>
+                <div><span class="status-badge status-draft">草稿</span></div>
+                <div>2024-01-25</div>
+                <div class="actions">
+                    <button class="action-btn edit"><i class="fas fa-edit"></i> 编辑</button>
+                    <button class="action-btn copy"><i class="fas fa-copy"></i> 复制</button>
+                    <button class="action-btn delete"><i class="fas fa-trash"></i> 删除</button>
+                </div>
+            </div>
+        </div>
+        <div class="pagination">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">...</button>
+            <button class="page-btn">10</button>
+        </div>
+    </div>
+</body>
+</html>

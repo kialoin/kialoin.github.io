@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理后台 - 智能问卷平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e4e8;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .nav-menu {
+            display: flex;
+            margin-left: 48px;
+            list-style: none;
+        }
+        .nav-item {
+            margin-right: 32px;
+        }
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #2563eb;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #e1e4e8;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .main-container {
+            margin-top: 60px;
+            padding: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .filter-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .filter-select {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            background-color: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .filter-btn:hover {
+            background-color: #1d4ed8;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 24px;
+        }
+        .stat-content {
+            flex: 1;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .stat-change {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .stat-change.positive {
+            color: #10b981;
+        }
+        .stat-change.negative {
+            color: #ef4444;
+        }
+        .table-container {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .table-action-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .table-action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e1e4e8;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #666;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .chart-card {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 20px;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .chart-action-btn {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .chart-action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+        }
+        .action-bar {
+            background-color: #fff;
+            border: 1px solid #e1e4e8;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .action-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .action-btn.primary {
+            background-color: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .action-btn.primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        .last-update {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <i class="fas fa-poll"></i> 智能问卷平台
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">问卷列表</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据监控</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">数据分析</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">系统管理</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">帮助</a>
+            </li>
+        </ul>
+        <div class="nav-right">
+            <i class="fas fa-bell" style="color: #666; font-size: 16px; cursor: pointer;"></i>
+            <div class="user-avatar">管</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">系统管理后台</h1>
+                <p class="page-subtitle">管理员专用界面，用于用户管理、系统监控、数据备份与恢复等操作</p>
+            </div>
+        </div>
+        <div class="filter-bar">
+            <div class="filter-item">
+                <span class="filter-label">操作类型：</span>
+                <select class="filter-select">
+                    <option>全部操作</option>
+                    <option>用户管理</option>
+                    <option>权限变更</option>
+                    <option>系统监控</option>
+                    <option>数据备份</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <span class="filter-label">时间范围：</span>
+                <select class="filter-select">
+                    <option>最近1小时</option>
+                    <option selected>最近24小时</option>
+                    <option>最近7天</option>
+                    <option>最近30天</option>
+                </select>
+            </div>
+            <button class="filter-btn">
+                <i class="fas fa-filter"></i> 应用筛选
+            </button>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">1,234</div>
+                    <div class="stat-label">活跃用户数</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 12.5% 较上月
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-server"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">98.7%</div>
+                    <div class="stat-label">系统可用性</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 0.3% 较上月
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">1.2TB</div>
+                    <div class="stat-label">数据库大小</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i> 2.1% 较上月
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">异常告警</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i> 3 较上月
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h3 class="table-title">用户管理</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn">
+                        <i class="fas fa-plus"></i> 添加用户
+                    </button>
+                    <button class="table-action-btn">
+                        <i class="fas fa-download"></i> 导出
+                    </button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>最后登录</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>张三</td>
+                        <td>zhangsan@example.com</td>
+                        <td>管理员</td>
+                        <td><span style="color: #10b981;">正常</span></td>
+                        <td>2024-01-31 15:30</td>
+                        <td>
+                            <button class="table-action-btn"><i class="fas fa-edit"></i></button>
+                            <button class="table-action-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td>李四</td>
+                        <td>lisi@example.com</td>
+                        <td>普通用户</td>
+                        <td><span style="color: #10b981;">正常</span></td>
+                        <td>2024-01-31 14:20</td>
+                        <td>
+                            <button class="table-action-btn"><i class="fas fa-edit"></i></button>
+                            <button class="table-action-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>003</td>
+                        <td>王五</td>
+                        <td>wangwu@example.com</td>
+                        <td>运营人员</td>
+                        <td><span style="color: #ef4444;">已禁用</span></td>
+                        <td>2024-01-30 09:15</td>
+                        <td>
+                            <button class="table-action-btn"><i class="fas fa-edit"></i></button>
+                            <button class="table-action-btn"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">系统性能指标</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button class="chart-action-btn">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="performanceChart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">异常告警统计</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button class="chart-action-btn">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="alertChart" class="chart-container"></div>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h3 class="table-title">操作留痕</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn">
+                        <i class="fas fa-download"></i> 导出日志
+                    </button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>操作时间</th>
+                        <th>操作人</th>
+                        <th>操作类型</th>
+                        <th>操作详情</th>
+                        <th>IP地址</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-01-31 18:30:00</td>
+                        <td>管理员</td>
+                        <td>用户禁用</td>
+                        <td>禁用用户王五</td>
+                        <td>192.168.1.100</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-31 17:45:00</td>
+                        <td>管理员</td>
+                        <td>权限变更</td>
+                        <td>为用户李四分配运营权限</td>
+                        <td>192.168.1.100</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-31 16:20:00</td>
+                        <td>管理员</td>
+                        <td>数据备份</td>
+                        <td>执行每日全量备份</td>
+                        <td>192.168.1.100</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h3 class="table-title">异常告警列表</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn">
+                        <i class="fas fa-sync-alt"></i> 刷新
+                    </button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>告警时间</th>
+                        <th>告警级别</th>
+                        <th>告警类型</th>
+                        <th>详细信息</th>
+                        <th>处理状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-01-31 18:25:00</td>
+                        <td><span style="color: #ef4444;">严重</span></td>
+                        <td>数据库连接超时</td>
+                        <td>主数据库连接超时，已触发自动重启</td>
+                        <td><span style="color: #f59e0b;">待处理</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-31 17:15:00</td>
+                        <td><span style="color: #f59e0b;">警告</span></td>
+                        <td>磁盘空间不足</td>
+                        <td>系统盘剩余空间低于10%，需要清理</td>
+                        <td><span style="color: #10b981;">已处理</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-31 16:45:00</td>
+                        <td><span style="color: #f59e0b;">警告</span></td>
+                        <td>API请求频率过高</td>
+                        <td>检测到某IP地址请求频率异常</td>
+                        <td><span style="color: #f59e0b;">待处理</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="action-bar">
+            <div class="action-buttons">
+                <button class="action-btn">
+                    <i class="fas fa-cog"></i> 系统设置
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-backup"></i> 数据备份
+                </button>
+                <button class="action-btn">
+                    <i class="fas fa-restore"></i> 数据恢复
+                </button>
+                <button class="action-btn primary">
+                    <i class="fas fa-sync-alt"></i> 刷新数据
+                </button>
+            </div>
+            <div class="last-update">
+                <i class="fas fa-clock"></i> 最后更新：2024-01-31 18:30:00
+            </div>
+        </div>
+    </div>
+    <script>
+        const performanceChart = echarts.init(document.getElementById('performanceChart'));
+        const performanceOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['CPU使用率', '内存使用率', '磁盘IO'],
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    fontSize: 12
+                }
+            },
+            series: [
+                {
+                    name: 'CPU使用率',
+                    type: 'line',
+                    smooth: true,
+                    data: [35, 28, 42, 38, 45, 32, 30],
+                    itemStyle: {
+                        color: '#2563eb'
+                    }
+                },
+                {
+                    name: '内存使用率',
+                    type: 'line',
+                    smooth: true,
+                    data: [65, 58, 72, 68, 75, 62, 60],
+                    itemStyle: {
+                        color: '#10b981'
+                    }
+                },
+                {
+                    name: '磁盘IO',
+                    type: 'line',
+                    smooth: true,
+                    data: [25, 30, 22, 35, 28, 32, 28],
+                    itemStyle: {
+                        color: '#f59e0b'
+                    }
+                }
+            ]
+        };
+        performanceChart.setOption(performanceOption);
+        const alertChart = echarts.init(document.getElementById('alertChart'));
+        const alertOption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            series: [
+                {
+                    name: '告警类型',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 2,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 18,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        { value: 435, name: '数据库问题', itemStyle: { color: '#2563eb' } },
+                        { value: 310, name: '网络异常', itemStyle: { color: '#60a5fa' } },
+                        { value: 234, name: '磁盘空间', itemStyle: { color: '#93c5fd' } },
+                        { value: 135, name: '服务宕机', itemStyle: { color: '#dbeafe' } },
+                        { value: 120, name: '其他', itemStyle: { color: '#eff6ff' } }
+                    ]
+                }
+            ]
+        };
+        alertChart.setOption(alertOption);
+        window.addEventListener('resize', function() {
+            performanceChart.resize();
+            alertChart.resize();
+        });
+    </script>
+</body>
+</html>

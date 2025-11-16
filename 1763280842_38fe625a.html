@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据挖掘可视化平台 - 算法库</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e1e8ed;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a73e8;
+            margin-right: auto;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+        .navbar-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        .navbar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .navbar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            bottom: 0;
+            width: 240px;
+            background-color: #fff;
+            border-right: 1px solid #e1e8ed;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+        .sidebar-title {
+            font-size: 12px;
+            color: #5f6368;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .sidebar-item {
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #5f6368;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .sidebar-item:hover {
+            background-color: #f8f9fa;
+            color: #1a73e8;
+        }
+        .sidebar-item.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .main-content {
+            margin-left: 240px;
+            margin-top: 60px;
+            padding: 24px;
+        }
+        .filter-bar {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 14px;
+            color: #5f6368;
+        }
+        .filter-select, .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            color: #2c3e50;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .filter-select:focus, .filter-input:focus {
+            border-color: #1a73e8;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1557b0;
+        }
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        .btn-secondary:hover {
+            background-color: #e8eaed;
+        }
+        .algorithm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .algorithm-card {
+            background-color: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        .algorithm-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        .algorithm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .algorithm-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .algorithm-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .algorithm-type.clustering {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .algorithm-type.classification {
+            background-color: #e6f4ea;
+            color: #188038;
+        }
+        .algorithm-type.association {
+            background-color: #fef7e0;
+            color: #ea8600;
+        }
+        .algorithm-description {
+            font-size: 14px;
+            color: #5f6368;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .algorithm-parameters {
+            margin-bottom: 16px;
+        }
+        .parameter-list {
+            list-style: none;
+        }
+        .parameter-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f3f4;
+            font-size: 13px;
+        }
+        .parameter-item:last-child {
+            border-bottom: none;
+        }
+        .parameter-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .parameter-desc {
+            color: #5f6368;
+        }
+        .algorithm-scenarios {
+            margin-bottom: 16px;
+        }
+        .scenario-list {
+            list-style: none;
+        }
+        .scenario-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .scenario-item:before {
+            content: "•";
+            color: #1a73e8;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-right: 4px;
+        }
+        .algorithm-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .action-btn.primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .action-btn.secondary {
+            background-color: #f8f9fa;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            color: #2c3e50;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus {
+            border-color: #1a73e8;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5f6368;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .algorithm-grid {
+                grid-template-columns: 1fr;
+            }
+            .navbar-menu {
+                display: none;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .search-container {
+                max-width: 100%;
+                margin-top: 12px;
+            }
+        }
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>数据挖掘可视化平台</span>
+        </div>
+        <ul class="navbar-menu">
+            <li class="navbar-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>仪表板</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-upload"></i>
+                <span>数据导入</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-cogs"></i>
+                <span>分析任务</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-file-alt"></i>
+                <span>报告生成</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-users"></i>
+                <span>用户管理</span>
+            </li>
+            <li class="navbar-item active">
+                <i class="fas fa-robot"></i>
+                <span>算法库</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-question-circle"></i>
+                <span>帮助文档</span>
+            </li>
+            <li class="navbar-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+            </li>
+        </ul>
+    </nav>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">快速访问</div>
+            <div class="sidebar-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>概览分析</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-users"></i>
+                <span>用户行为</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>点击热力</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-route"></i>
+                <span>访问路径</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">数据筛选</div>
+            <div class="sidebar-item">
+                <i class="fas fa-calendar"></i>
+                <span>时间范围</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-filter"></i>
+                <span>高级筛选</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-tags"></i>
+                <span>标签分组</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-title">设置</div>
+            <div class="sidebar-item">
+                <i class="fas fa-palette"></i>
+                <span>主题设置</span>
+            </div>
+            <div class="sidebar-item">
+                <i class="fas fa-save"></i>
+                <span>保存配置</span>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label class="filter-label">算法类型：</label>
+                <select class="filter-select">
+                    <option>全部类型</option>
+                    <option>聚类算法</option>
+                    <option>分类算法</option>
+                    <option>关联规则</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">适用领域：</label>
+                <select class="filter-select">
+                    <option>全部领域</option>
+                    <option>客户分析</option>
+                    <option>市场研究</option>
+                    <option>推荐系统</option>
+                </select>
+            </div>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="搜索算法名称或描述...">
+            </div>
+            <button class="btn btn-primary">
+                <i class="fas fa-search"></i>
+                <span>搜索</span>
+            </button>
+        </div>
+        <div class="algorithm-grid">
+            <div class="algorithm-card">
+                <div class="algorithm-header">
+                    <h3 class="algorithm-name">K-means</h3>
+                    <span class="algorithm-type clustering">聚类算法</span>
+                </div>
+                <p class="algorithm-description">
+                    K-means是一种无监督学习算法，用于将数据集划分为K个簇，每个簇由其质心表示。通过迭代优化过程最小化簇内平方和。
+                </p>
+                <div class="algorithm-parameters">
+                    <h4>主要参数：</h4>
+                    <ul class="parameter-list">
+                        <li class="parameter-item">
+                            <span class="parameter-name">K值</span>
+                            <span class="parameter-desc">簇的数量</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">最大迭代次数</span>
+                            <span class="parameter-desc">算法收敛的最大迭代次数</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">初始化方法</span>
+                            <span class="parameter-desc">质心初始化策略</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="algorithm-scenarios">
+                    <h4>适用场景：</h4>
+                    <ul class="scenario-list">
+                        <li class="scenario-item">客户细分</li>
+                        <li class="scenario-item">图像压缩</li>
+                        <li class="scenario-item">市场研究</li>
+                        <li class="scenario-item">数据预处理</li>
+                    </ul>
+                </div>
+                <div class="algorithm-actions">
+                    <button class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加到任务</span>
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>详细信息</span>
+                    </button>
+                </div>
+            </div>
+            <div class="algorithm-card">
+                <div class="algorithm-header">
+                    <h3 class="algorithm-name">Apriori</h3>
+                    <span class="algorithm-type association">关联规则</span>
+                </div>
+                <p class="algorithm-description">
+                    Apriori算法是一种用于挖掘频繁项集和生成关联规则的经典算法。基于"频繁项集的所有非空子集都必须是频繁的"这一特性。
+                </p>
+                <div class="algorithm-parameters">
+                    <h4>主要参数：</h4>
+                    <ul class="parameter-list">
+                        <li class="parameter-item">
+                            <span class="parameter-name">最小支持度</span>
+                            <span class="parameter-desc">项集出现的最小频率</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">最小置信度</span>
+                            <span class="parameter-desc">规则成立的最小概率</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">最大项集大小</span>
+                            <span class="parameter-desc">生成规则的最大项数</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="algorithm-scenarios">
+                    <h4>适用场景：</h4>
+                    <ul class="scenario-list">
+                        <li class="scenario-item">购物篮分析</li>
+                        <li class="scenario-item">推荐系统</li>
+                        <li class="scenario-item">市场组合分析</li>
+                        <li class="scenario-item">医疗诊断</li>
+                    </ul>
+                </div>
+                <div class="algorithm-actions">
+                    <button class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加到任务</span>
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>详细信息</span>
+                    </button>
+                </div>
+            </div>
+            <div class="algorithm-card">
+                <div class="algorithm-header">
+                    <h3 class="algorithm-name">决策树</h3>
+                    <span class="algorithm-type classification">分类算法</span>
+                </div>
+                <p class="algorithm-description">
+                    决策树是一种基于树形结构进行分类或回归的机器学习算法。通过一系列判断条件对数据进行分割，构建决策规则。
+                </p>
+                <div class="algorithm-parameters">
+                    <h4>主要参数：</h4>
+                    <ul class="parameter-list">
+                        <li class="parameter-item">
+                            <span class="parameter-name">分割标准</span>
+                            <span class="parameter-desc">信息增益、基尼系数等</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">最大深度</span>
+                            <span class="parameter-desc">树的最大层数</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">最小样本分割</span>
+                            <span class="parameter-desc">节点分割所需的最小样本数</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="algorithm-scenarios">
+                    <h4>适用场景：</h4>
+                    <ul class="scenario-list">
+                        <li class="scenario-item">信用评估</li>
+                        <li class="scenario-item">医疗诊断</li>
+                        <li class="scenario-item">客户服务分类</li>
+                        <li class="scenario-item">风险预测</li>
+                    </ul>
+                </div>
+                <div class="algorithm-actions">
+                    <button class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加到任务</span>
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>详细信息</span>
+                    </button>
+                </div>
+            </div>
+            <div class="algorithm-card">
+                <div class="algorithm-header">
+                    <h3 class="algorithm-name">随机森林</h3>
+                    <span class="algorithm-type classification">分类算法</span>
+                </div>
+                <p class="algorithm-description">
+                    随机森林是一种集成学习算法，通过构建多个决策树并结合它们的结果来提高模型的准确性和鲁棒性。
+                </p>
+                <div class="algorithm-parameters">
+                    <h4>主要参数：</h4>
+                    <ul class="parameter-list">
+                        <li class="parameter-item">
+                            <span class="parameter-name">树的数量</span>
+                            <span class="parameter-desc">集成中决策树的数量</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">最大深度</span>
+                            <span class="parameter-desc">单棵树的最大深度</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">特征采样比例</span>
+                            <span class="parameter-desc">每棵树使用的特征比例</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="algorithm-scenarios">
+                    <h4>适用场景：</h4>
+                    <ul class="scenario-list">
+                        <li class="scenario-item">金融风控</li>
+                        <li class="scenario-item">生物信息学</li>
+                        <li class="scenario-item">图像识别</li>
+                        <li class="scenario-item">自然语言处理</li>
+                    </ul>
+                </div>
+                <div class="algorithm-actions">
+                    <button class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加到任务</span>
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>详细信息</span>
+                    </button>
+                </div>
+            </div>
+            <div class="algorithm-card">
+                <div class="algorithm-header">
+                    <h3 class="algorithm-name">神经网络</h3>
+                    <span class="algorithm-type classification">分类算法</span>
+                </div>
+                <p class="algorithm-description">
+                    神经网络是一种模拟人脑神经元结构的机器学习模型，通过多层非线性变换来学习复杂的模式和关系。
+                </p>
+                <div class="algorithm-parameters">
+                    <h4>主要参数：</h4>
+                    <ul class="parameter-list">
+                        <li class="parameter-item">
+                            <span class="parameter-name">隐藏层结构</span>
+                            <span class="parameter-desc">各层神经元数量</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">学习率</span>
+                            <span class="parameter-desc">训练时的步长</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">激活函数</span>
+                            <span class="parameter-desc">神经元的非线性变换函数</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="algorithm-scenarios">
+                    <h4>适用场景：</h4>
+                    <ul class="scenario-list">
+                        <li class="scenario-item">图像识别</li>
+                        <li class="scenario-item">语音识别</li>
+                        <li class="scenario-item">自然语言处理</li>
+                        <li class="scenario-item">预测建模</li>
+                    </ul>
+                </div>
+                <div class="algorithm-actions">
+                    <button class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加到任务</span>
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>详细信息</span>
+                    </button>
+                </div>
+            </div>
+            <div class="algorithm-card">
+                <div class="algorithm-header">
+                    <h3 class="algorithm-name">SVM</h3>
+                    <span class="algorithm-type classification">分类算法</span>
+                </div>
+                <p class="algorithm-description">
+                    支持向量机是一种监督学习算法，通过寻找最优超平面来实现数据分类，具有良好的泛化能力。
+                </p>
+                <div class="algorithm-parameters">
+                    <h4>主要参数：</h4>
+                    <ul class="parameter-list">
+                        <li class="parameter-item">
+                            <span class="parameter-name">核函数</span>
+                            <span class="parameter-desc">线性、多项式、RBF等</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">正则化参数C</span>
+                            <span class="parameter-desc">惩罚系数</span>
+                        </li>
+                        <li class="parameter-item">
+                            <span class="parameter-name">核函数参数</span>
+                            <span class="parameter-desc">针对特定核函数的参数</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="algorithm-scenarios">
+                    <h4>适用场景：</h4>
+                    <ul class="scenario-list">
+                        <li class="scenario-item">文本分类</li>
+                        <li class="scenario-item">图像识别</li>
+                        <li class="scenario-item">生物信息学</li>
+                        <li class="scenario-item">金融预测</li>
+                    </ul>
+                </div>
+                <div class="algorithm-actions">
+                    <button class="action-btn primary">
+                        <i class="fas fa-plus"></i>
+                        <span>添加到任务</span>
+                    </button>
+                    <button class="action-btn secondary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>详细信息</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        document.querySelectorAll('.navbar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.navbar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

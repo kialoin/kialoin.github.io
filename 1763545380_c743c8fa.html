@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仪表盘概览</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e4e7ed;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        .navbar-menu a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .navbar-menu a:hover,
+        .navbar-menu a.active {
+            color: #1e3a8a;
+            background-color: #eff6ff;
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #1e3a8a;
+            color: white;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .main-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .time-filter {
+            background-color: #fff;
+            padding: 15px 20px;
+            border: 1px solid #e4e7ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .time-filter select,
+        .time-filter button {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .time-filter button {
+            background-color: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background-color: #fff;
+            border: 1px solid #e4e7ed;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .metric-card:hover {
+            border-color: #1e3a8a;
+            transform: translateY(-2px);
+        }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .metric-title {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .metric-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #eff6ff;
+            color: #1e3a8a;
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .metric-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .metric-change.positive {
+            color: #16a34a;
+        }
+        .metric-change.negative {
+            color: #dc2626;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background-color: #fff;
+            border: 1px solid #e4e7ed;
+            padding: 20px;
+        }
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .chart-action-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .chart-action-btn:hover {
+            color: #1e3a8a;
+            border-color: #1e3a8a;
+        }
+        .chart-container {
+            height: 300px;
+        }
+        .monitor-panel {
+            background-color: #fff;
+            border: 1px solid #e4e7ed;
+            padding: 20px;
+        }
+        .monitor-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .monitor-item {
+            padding: 15px;
+            border: 1px solid #f1f5f9;
+            background-color: #fafbfc;
+        }
+        .monitor-item-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .monitor-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .monitor-status.success {
+            background-color: #16a34a;
+        }
+        .monitor-status.warning {
+            background-color: #f59e0b;
+        }
+        .monitor-status.error {
+            background-color: #dc2626;
+        }
+        .monitor-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .monitor-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #e5e7eb;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #1e3a8a;
+            transition: width 0.3s;
+        }
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            数据分析平台
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="#" class="active">仪表盘</a></li>
+            <li><a href="#">数据分析</a></li>
+            <li><a href="#">报告生成</a></li>
+            <li><a href="#">系统管理</a></li>
+        </ul>
+        <div class="navbar-user">
+            <i class="fas fa-bell" style="color: #64748b; cursor: pointer;"></i>
+            <div class="user-avatar">A</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="time-filter">
+            <label style="font-size: 14px;">时间范围：</label>
+            <select id="timeRange">
+                <option value="today">今日</option>
+                <option value="7days" selected>近7天</option>
+                <option value="30days">近30天</option>
+                <option value="custom">自定义</option>
+            </select>
+            <button onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> 刷新数据
+            </button>
+        </div>
+        <div class="metrics-grid">
+            <div class="metric-card" onclick="navigateToDetail('dau')">
+                <div class="metric-header">
+                    <span class="metric-title">日活跃用户数</span>
+                    <div class="metric-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="metric-value">12,458</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>较昨日增长 12.5%</span>
+                </div>
+            </div>
+            <div class="metric-card" onclick="navigateToDetail('transaction')">
+                <div class="metric-header">
+                    <span class="metric-title">交易预测总值</span>
+                    <div class="metric-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="metric-value">¥3,256,890</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>较昨日增长 8.3%</span>
+                </div>
+            </div>
+            <div class="metric-card" onclick="navigateToDetail('collection')">
+                <div class="metric-header">
+                    <span class="metric-title">数据采集成功率</span>
+                    <div class="metric-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                </div>
+                <div class="metric-value">98.5%</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>较昨日提升 0.5%</span>
+                </div>
+            </div>
+            <div class="metric-card" onclick="navigateToDetail('queue')">
+                <div class="metric-header">
+                    <span class="metric-title">任务队列状态</span>
+                    <div class="metric-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                <div class="metric-value">245</div>
+                <div class="metric-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>待处理任务</span>
+                </div>
+            </div>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">用户行为趋势</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn" onclick="exportChart('behavior')">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button class="chart-action-btn" onclick="toggleChartType('behavior')">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="behaviorChart" class="chart-container"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">用户偏好分布</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn" onclick="exportChart('preference')">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button class="chart-action-btn" onclick="toggleChartType('preference')">
+                            <i class="fas fa-chart-pie"></i>
+                        </button>
+                    </div>
+                </div>
+                <canvas id="preferenceChart" class="chart-container"></canvas>
+            </div>
+        </div>
+        <div class="monitor-panel">
+            <h3 class="monitor-header">实时监控状态</h3>
+            <div class="monitor-grid">
+                <div class="monitor-item">
+                    <div class="monitor-item-header">
+                        <div class="monitor-status success"></div>
+                        <span class="monitor-label">数据采集任务</span>
+                    </div>
+                    <div class="monitor-value">成功 1,245 次</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-item-header">
+                        <div class="monitor-status warning"></div>
+                        <span class="monitor-label">模型训练进度</span>
+                    </div>
+                    <div class="monitor-value">65%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-item-header">
+                        <div class="monitor-status error"></div>
+                        <span class="monitor-label">异常告警</span>
+                    </div>
+                    <div class="monitor-value">3 条</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 30%; background-color: #dc2626;"></div>
+                    </div>
+                </div>
+                <div class="monitor-item">
+                    <div class="monitor-item-header">
+                        <div class="monitor-status success"></div>
+                        <span class="monitor-label">API调用状态</span>
+                    </div>
+                    <div class="monitor-value">正常</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const behaviorCtx = document.getElementById('behaviorChart').getContext('2d');
+        const behaviorChart = new Chart(behaviorCtx, {
+            type: 'line',
+            data: {
+                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                datasets: [{
+                    label: '页面访问量',
+                    data: [8200, 9320, 9010, 9340, 12900, 13300, 12458],
+                    borderColor: '#1e3a8a',
+                    backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: '点击次数',
+                    data: [6200, 7320, 7010, 7340, 10900, 11300, 10458],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: '用户数',
+                    data: [3200, 3320, 3010, 3340, 3900, 4300, 4458],
+                    borderColor: '#60a5fa',
+                    backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        const preferenceCtx = document.getElementById('preferenceChart').getContext('2d');
+        const preferenceChart = new Chart(preferenceCtx, {
+            type: 'pie',
+            data: {
+                labels: ['电子产品', '服装鞋帽', '食品饮料', '家居用品', '其他'],
+                datasets: [{
+                    data: [1048, 735, 580, 484, 300],
+                    backgroundColor: [
+                        '#1e3a8a',
+                        '#3b82f6',
+                        '#60a5fa',
+                        '#93c5fd',
+                        '#dbeafe'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'left',
+                    }
+                }
+            }
+        });
+        function refreshData() {
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            icon.style.animation = 'spin 1s linear';
+            setTimeout(() => {
+                icon.style.animation = '';
+                behaviorChart.update();
+                preferenceChart.update();
+            }, 1000);
+        }
+        function exportChart(chartType) {
+            const chart = chartType === 'behavior' ? behaviorChart : preferenceChart;
+            const link = document.createElement('a');
+            link.download = `${chartType}_chart_${Date.now()}.png`;
+            link.href = chart.toBase64Image();
+            link.click();
+        }
+        function toggleChartType(chartType) {
+            if (chartType === 'behavior') {
+                behaviorChart.config.type = behaviorChart.config.type === 'line' ? 'bar' : 'line';
+                behaviorChart.update();
+            } else if (chartType === 'preference') {
+                preferenceChart.config.type = preferenceChart.config.type === 'pie' ? 'doughnut' : 'pie';
+                preferenceChart.update();
+            }
+        }
+        function navigateToDetail(type) {
+            console.log(`Navigate to ${type} detail page`);
+        }
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

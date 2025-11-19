@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据可视化分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e4e7ed;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        .navbar-menu a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .navbar-menu a:hover,
+        .navbar-menu a.active {
+            color: #1e3a8a;
+            background-color: #eff6ff;
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #1e3a8a;
+            color: white;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .main-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .time-filter {
+            background-color: #fff;
+            padding: 15px 20px;
+            border: 1px solid #e4e7ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .time-filter select,
+        .time-filter button {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .time-filter button {
+            background-color: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background-color: #fff;
+            border: 1px solid #e4e7ed;
+            padding: 20px;
+        }
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .chart-action-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .chart-action-btn:hover {
+            color: #1e3a8a;
+            border-color: #1e3a8a;
+        }
+        .chart-container {
+            height: 300px;
+        }
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            数据分析平台
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="#" class="active">数据可视化分析</a></li>
+            <li><a href="#">数据分析</a></li>
+            <li><a href="#">报告生成</a></li>
+            <li><a href="#">系统管理</a></li>
+        </ul>
+        <div class="navbar-user">
+            <i class="fas fa-bell" style="color: #64748b; cursor: pointer;"></i>
+            <div class="user-avatar">A</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="time-filter">
+            <label style="font-size: 14px;">时间范围：</label>
+            <select id="timeRange">
+                <option value="today">今日</option>
+                <option value="7days" selected>近7天</option>
+                <option value="30days">近30天</option>
+                <option value="custom">自定义</option>
+            </select>
+            <select id="categoryFilter">
+                <option value="all">全部商品类别</option>
+                <option value="electronics">电子产品</option>
+                <option value="clothing">服装鞋帽</option>
+                <option value="food">食品饮料</option>
+            </select>
+            <select id="groupFilter">
+                <option value="all">全部用户群体</option>
+                <option value="new">新用户</option>
+                <option value="returning">老用户</option>
+                <option value="vip">VIP用户</option>
+            </select>
+            <button onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> 刷新数据
+            </button>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">用户行为密度热力图</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn" onclick="exportChart('heatmap')">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                    </div>
+                </div>
+                <div id="heatmapChart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">交易预测趋势图</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn" onclick="exportChart('trend')">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                    </div>
+                </div>
+                <div id="trendChart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">用户偏好雷达图</h3>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn" onclick="exportChart('radar')">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                    </div>
+                </div>
+                <div id="radarChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const heatmapChart = echarts.init(document.getElementById('heatmapChart'));
+        const heatmapOption = {
+            tooltip: {
+                position: 'top'
+            },
+            animation: false,
+            grid: {
+                height: '50%',
+                y: '10%'
+            },
+            xAxis: {
+                type: 'category',
+                data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                splitArea: {
+                    show: true
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: ['00:00-04:00', '04:00-08:00', '08:00-12:00', '12:00-16:00', '16:00-20:00', '20:00-24:00'],
+                splitArea: {
+                    show: true
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: 1000,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '15%'
+            },
+            series: [{
+                name: '用户行为密度',
+                type: 'heatmap',
+                data: [
+                    ['周一', '00:00-04:00', 100], ['周二', '00:00-04:00', 200], ['周三', '00:00-04:00', 300], 
+                    ['周四', '00:00-04:00', 400], ['周五', '00:00-04:00', 500], ['周六', '00:00-04:00', 600], 
+                    ['周日', '00:00-04:00', 700],
+                    ['周一', '04:00-08:00', 200], ['周二', '04:00-08:00', 300], ['周三', '04:00-08:00', 400], 
+                    ['周四', '04:00-08:00', 500], ['周五', '04:00-08:00', 600], ['周六', '04:00-08:00', 700], 
+                    ['周日', '04:00-08:00', 800],
+                    ['周一', '08:00-12:00', 300], ['周二', '08:00-12:00', 400], ['周三', '08:00-12:00', 500], 
+                    ['周四', '08:00-12:00', 600], ['周五', '08:00-12:00', 700], ['周六', '08:00-12:00', 800], 
+                    ['周日', '08:00-12:00', 900],
+                    ['周一', '12:00-16:00', 400], ['周二', '12:00-16:00', 500], ['周三', '12:00-16:00', 600], 
+                    ['周四', '12:00-16:00', 700], ['周五', '12:00-16:00', 800], ['周六', '12:00-16:00', 900], 
+                    ['周日', '12:00-16:00', 1000],
+                    ['周一', '16:00-20:00', 500], ['周二', '16:00-20:00', 600], ['周三', '16:00-20:00', 700], 
+                    ['周四', '16:00-20:00', 800], ['周五', '16:00-20:00', 900], ['周六', '16:00-20:00', 1000], 
+                    ['周日', '16:00-20:00', 1100],
+                    ['周一', '20:00-24:00', 600], ['周二', '20:00-24:00', 700], ['周三', '20:00-24:00', 800], 
+                    ['周四', '20:00-24:00', 900], ['周五', '20:00-24:00', 1000], ['周六', '20:00-24:00', 1100], 
+                    ['周日', '20:00-24:00', 1200]
+                ],
+                label: {
+                    show: true
+                },
+                emphasis: {
+                    focus: 'series'
+                }
+            }]
+        };
+        heatmapChart.setOption(heatmapOption);
+        const trendChart = echarts.init(document.getElementById('trendChart'));
+        const trendOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['交易预测值', '实际交易值']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name: '交易预测值',
+                    type: 'line',
+                    data: [8200, 9320, 9010, 9340, 12900, 13300, 12458],
+                    smooth: true,
+                    itemStyle: {
+                        color: '#1e3a8a'
+                    }
+                },
+                {
+                    name: '实际交易值',
+                    type: 'line',
+                    data: [7200, 8320, 8010, 8340, 11900, 12300, 11458],
+                    smooth: true,
+                    itemStyle: {
+                        color: '#3b82f6'
+                    }
+                }
+            ]
+        };
+        trendChart.setOption(trendOption);
+        const radarChart = echarts.init(document.getElementById('radarChart'));
+        const radarOption = {
+            tooltip: {},
+            radar: {
+                indicator: [
+                    { name: '电子产品', max: 100 },
+                    { name: '服装鞋帽', max: 100 },
+                    { name: '食品饮料', max: 100 },
+                    { name: '家居用品', max: 100 },
+                    { name: '图书音像', max: 100 },
+                    { name: '运动户外', max: 100 }
+                ]
+            },
+            series: [{
+                name: '用户偏好',
+                type: 'radar',
+                data: [
+                    {
+                        value: [80, 70, 60, 90, 75, 85],
+                        name: '新用户'
+                    },
+                    {
+                        value: [60, 80, 70, 65, 85, 70],
+                        name: '老用户'
+                    }
+                ]
+            }]
+        };
+        radarChart.setOption(radarOption);
+        window.addEventListener('resize', function() {
+            heatmapChart.resize();
+            trendChart.resize();
+            radarChart.resize();
+        });
+        function refreshData() {
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            icon.style.animation = 'spin 1s linear';
+            setTimeout(() => {
+                icon.style.animation = '';
+                heatmapChart.setOption(heatmapOption);
+                trendChart.setOption(trendOption);
+                radarChart.setOption(radarOption);
+            }, 1000);
+        }
+        function exportChart(chartType) {
+            let chart;
+            switch(chartType) {
+                case 'heatmap':
+                    chart = heatmapChart;
+                    break;
+                case 'trend':
+                    chart = trendChart;
+                    break;
+                case 'radar':
+                    chart = radarChart;
+                    break;
+            }
+            const url = chart.getDataURL({
+                type: 'png',
+                pixelRatio: 2,
+                backgroundColor: '#fff'
+            });
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${chartType}_chart_${Date.now()}.png`;
+            a.click();
+        }
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

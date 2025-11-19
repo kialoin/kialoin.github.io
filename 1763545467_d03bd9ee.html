@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理及权限控制</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e4e7ed;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        .navbar-menu a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .navbar-menu a:hover,
+        .navbar-menu a.active {
+            color: #1e3a8a;
+            background-color: #eff6ff;
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #1e3a8a;
+            color: white;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .main-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .time-filter {
+            background-color: #fff;
+            padding: 15px 20px;
+            border: 1px solid #e4e7ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .time-filter select,
+        .time-filter button {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .time-filter button {
+            background-color: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+        }
+        .table-container {
+            background-color: #fff;
+            border: 1px solid #e4e7ed;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .table-action-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .table-action-btn:hover {
+            color: #1e3a8a;
+            border-color: #1e3a8a;
+        }
+        .table-action-btn.primary {
+            background-color: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+        }
+        .table-action-btn.primary:hover {
+            background-color: #1d4ed8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e4e7ed;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #64748b;
+        }
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .status-inactive {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .role-admin {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        .role-user {
+            background-color: #f0f9ff;
+            color: #0284c7;
+        }
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .page-btn.active {
+            background-color: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+        }
+        .page-btn:hover:not(.active) {
+            background-color: #f1f5f9;
+        }
+        .permission-card {
+            background-color: #fff;
+            border: 1px solid #e4e7ed;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .permission-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .permission-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .permission-item {
+            padding: 15px;
+            border: 1px solid #e4e7ed;
+        }
+        .permission-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .permission-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .permission-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .permission-toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .permission-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #1e3a8a;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        @media (max-width: 768px) {
+            .navbar-menu {
+                display: none;
+            }
+            .main-container {
+                padding: 10px;
+            }
+            .permission-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-chart-line"></i>
+            数据分析平台
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="#" class="">仪表盘</a></li>
+            <li><a href="#" class="">数据分析</a></li>
+            <li><a href="#" class="active">用户管理</a></li>
+            <li><a href="#" class="">系统管理</a></li>
+        </ul>
+        <div class="navbar-user">
+            <i class="fas fa-bell" style="color: #64748b; cursor: pointer;"></i>
+            <div class="user-avatar">A</div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <div class="time-filter">
+            <label style="font-size: 14px;">操作范围：</label>
+            <select id="timeRange">
+                <option value="all">全部</option>
+                <option value="today">今日</option>
+                <option value="7days" selected>近7天</option>
+                <option value="30days">近30天</option>
+            </select>
+            <button onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> 刷新数据
+            </button>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h3 class="table-title">用户账户管理</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn primary" onclick="addUser()">
+                        <i class="fas fa-plus"></i> 新增用户
+                    </button>
+                    <button class="table-action-btn" onclick="batchDelete()">
+                        <i class="fas fa-trash"></i> 批量删除
+                    </button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>张三</td>
+                        <td>zhangsan@example.com</td>
+                        <td><span class="role-badge role-admin">管理员</span></td>
+                        <td><span class="status-badge status-active">启用</span></td>
+                        <td>2023-01-15</td>
+                        <td>
+                            <button class="table-action-btn" onclick="editUser(1)">编辑</button>
+                            <button class="table-action-btn" onclick="deleteUser(1)">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>李四</td>
+                        <td>lisi@example.com</td>
+                        <td><span class="role-badge role-user">普通用户</span></td>
+                        <td><span class="status-badge status-active">启用</span></td>
+                        <td>2023-02-20</td>
+                        <td>
+                            <button class="table-action-btn" onclick="editUser(2)">编辑</button>
+                            <button class="table-action-btn" onclick="deleteUser(2)">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>王五</td>
+                        <td>wangwu@example.com</td>
+                        <td><span class="role-badge role-user">普通用户</span></td>
+                        <td><span class="status-badge status-inactive">禁用</span></td>
+                        <td>2023-03-10</td>
+                        <td>
+                            <button class="table-action-btn" onclick="editUser(3)">编辑</button>
+                            <button class="table-action-btn" onclick="deleteUser(3)">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>赵六</td>
+                        <td>zhaoliu@example.com</td>
+                        <td><span class="role-badge role-admin">管理员</span></td>
+                        <td><span class="status-badge status-active">启用</span></td>
+                        <td>2023-04-05</td>
+                        <td>
+                            <button class="table-action-btn" onclick="editUser(4)">编辑</button>
+                            <button class="table-action-btn" onclick="deleteUser(4)">删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="pagination">
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">下一页</button>
+            </div>
+        </div>
+        <div class="permission-card">
+            <div class="permission-header">
+                <h3 class="permission-title">RBAC权限规则配置</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn primary" onclick="savePermissions()">
+                        <i class="fas fa-save"></i> 保存配置
+                    </button>
+                </div>
+            </div>
+            <div class="permission-grid">
+                <div class="permission-item">
+                    <div class="permission-item-header">
+                        <span class="permission-name">数据访问权限</span>
+                        <label class="permission-toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="permission-desc">允许查看和导出所有业务数据</p>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-item-header">
+                        <span class="permission-name">用户管理权限</span>
+                        <label class="permission-toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="permission-desc">可创建、编辑、删除用户账户</p>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-item-header">
+                        <span class="permission-name">系统配置权限</span>
+                        <label class="permission-toggle">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="permission-desc">可修改系统参数和配置项</p>
+                </div>
+                <div class="permission-item">
+                    <div class="permission-item-header">
+                        <span class="permission-name">日志审计权限</span>
+                        <label class="permission-toggle">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="permission-desc">可查看所有操作日志和审计记录</p>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h3 class="table-title">操作日志审计</h3>
+                <div class="table-actions">
+                    <button class="table-action-btn" onclick="exportLogs()">
+                        <i class="fas fa-download"></i> 导出日志
+                    </button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>用户</th>
+                        <th>操作类型</th>
+                        <th>操作详情</th>
+                        <th>IP地址</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023-06-15 14:30:22</td>
+                        <td>张三</td>
+                        <td>登录</td>
+                        <td>管理员登录系统</td>
+                        <td>192.168.1.100</td>
+                    </tr>
+                    <tr>
+                        <td>2023-06-15 15:12:45</td>
+                        <td>李四</td>
+                        <td>修改用户</td>
+                        <td>修改了王五的账户信息</td>
+                        <td>192.168.1.101</td>
+                    </tr>
+                    <tr>
+                        <td>2023-06-15 16:45:10</td>
+                        <td>张三</td>
+                        <td>删除用户</td>
+                        <td>删除了用户赵六</td>
+                        <td>192.168.1.100</td>
+                    </tr>
+                    <tr>
+                        <td>2023-06-15 17:20:33</td>
+                        <td>王五</td>
+                        <td>数据导出</td>
+                        <td>导出了销售报表</td>
+                        <td>192.168.1.102</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        function refreshData() {
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            icon.style.animation = 'spin 1s linear';
+            setTimeout(() => {
+                icon.style.animation = '';
+            }, 1000);
+        }
+        function addUser() {
+            alert('新增用户功能已激活');
+        }
+        function editUser(id) {
+            alert(`编辑用户 ID: ${id}`);
+        }
+        function deleteUser(id) {
+            if (confirm('确定要删除此用户吗？')) {
+                alert(`用户 ID: ${id} 已删除`);
+            }
+        }
+        function batchDelete() {
+            if (confirm('确定要批量删除选中的用户吗？')) {
+                alert('已执行批量删除操作');
+            }
+        }
+        function savePermissions() {
+            alert('权限配置已保存');
+        }
+        function exportLogs() {
+            alert('日志导出功能已激活');
+        }
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录注册页面</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #e4e7ed;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        .navbar-menu a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .navbar-menu a:hover,
+        .navbar-menu a.active {
+            color: #1e3a8a;
+            background-color: #eff6ff;
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-color: #1e3a8a;
+            color: white;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .auth-container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-header h2 {
+            color: #1e293b;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .auth-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        .input-with-icon {
+            position: relative;
+        }
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+        }
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .auth-footer a {
+            color: #1e3a8a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e4e7ed;
+        }
+        .auth-switch p {
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .social-btn.google:hover {
+            background-color: #db4437;
+            color: white;
+        }
+        .social-btn.github:hover {
+            background-color: #333;
+            color: white;
+        }
+        .social-btn.wechat:hover {
+            background-color: #07c160;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .navbar {
+                position: static;
+                transform: none;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            .auth-container {
+                padding: 30px 20px;
+                margin: 0 10px;
+            }
+            .navbar-menu {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-lock"></i>
+            安全认证平台
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="#" class="active">登录注册</a></li>
+            <li><a href="#">数据安全</a></li>
+            <li><a href="#">权限管理</a></li>
+            <li><a href="#">系统设置</a></li>
+        </ul>
+        <div class="navbar-user">
+            <i class="fas fa-bell" style="color: #64748b; cursor: pointer;"></i>
+            <div class="user-avatar">A</div>
+        </div>
+    </nav>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h2>欢迎回来</h2>
+            <p>请登录您的账户</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名或邮箱</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" class="form-control" placeholder="请输入用户名或邮箱" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" class="form-control" placeholder="请输入密码" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">登录</button>
+            </div>
+        </form>
+        <div class="auth-switch">
+            <p>还没有账户？</p>
+            <button class="btn btn-secondary" onclick="showRegister()">立即注册</button>
+        </div>
+        <div class="auth-footer">
+            <a href="#" onclick="showForgotPassword()">忘记密码？</a>
+        </div>
+        <div class="social-login">
+            <button class="social-btn google">
+                <i class="fab fa-google"></i>
+            </button>
+            <button class="social-btn github">
+                <i class="fab fa-github"></i>
+            </button>
+            <button class="social-btn wechat">
+                <i class="fab fa-weixin"></i>
+            </button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = this.querySelector('.btn-primary');
+            const originalText = loginBtn.textContent;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+            loginBtn.disabled = true;
+            setTimeout(() => {
+                alert('登录成功！（模拟）\n用户名：' + username);
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
+            }, 1500);
+        });
+        function showRegister() {
+            alert('切换到注册页面（模拟）');
+        }
+        function showForgotPassword() {
+            alert('忘记密码功能（模拟）');
+        }
+        document.querySelectorAll('.social-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const platform = this.classList[1];
+                alert(`${platform} 登录功能（模拟）`);
+            });
+        });
+    </script>
+</body>
+</html>

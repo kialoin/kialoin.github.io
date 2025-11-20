@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - 校园非机动车管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 240px;
+            background-color: #1e3a5f;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+        .sidebar-header {
+            padding: 20px;
+            background-color: #152a42;
+            border-bottom: 1px solid #2a4a6f;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 10px 0;
+        }
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #b8c5d6;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item.active {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item i {
+            width: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .auth-container {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .auth-header h1 {
+            font-size: 24px;
+            color: #1e3a5f;
+            margin-bottom: 8px;
+        }
+        .auth-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            color: #4a90e2;
+            border-bottom-color: #4a90e2;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #3a7bc8;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #4a90e2;
+            border: 1px solid #4a90e2;
+        }
+        .btn-outline:hover {
+            background-color: #4a90e2;
+            color: white;
+        }
+        .auth-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+        .social-login {
+            margin-top: 20px;
+        }
+        .social-login p {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #666;
+            position: relative;
+        }
+        .social-login p::before,
+        .social-login p::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 1px;
+            background-color: #e1e8ed;
+        }
+        .social-login p::before {
+            left: 0;
+        }
+        .social-login p::after {
+            right: 0;
+        }
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .social-icon:hover {
+            background-color: #4a90e2;
+            color: white;
+        }
+        .password-toggle {
+            position: relative;
+        }
+        .password-toggle i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #999;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 60px;
+                position: relative;
+                height: auto;
+            }
+            .sidebar-header h2,
+            .nav-item span {
+                display: none;
+            }
+            .auth-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-bicycle"></i> 管理平台</h2>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-item"><i class="fas fa-home"></i><span>首页</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-plus-circle"></i><span>车辆登记</span></a></li>
+                    <li><a href="#" class="nav-item active"><i class="fas fa-user"></i><span>个人中心</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-map"></i><span>实时地图</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>违规记录</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-chart-bar"></i><span>数据分析</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-cog"></i><span>系统设置</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>退出登录</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>欢迎登录</h1>
+                <p>校园非机动车管理平台</p>
+            </div>
+            <div class="auth-tabs">
+                <div class="tab active" data-tab="login">登录</div>
+                <div class="tab" data-tab="register">注册</div>
+            </div>
+            <div class="tab-content active" id="login-content">
+                <div class="form-group">
+                    <label for="login-username">手机号/邮箱</label>
+                    <input type="text" id="login-username" class="form-control" placeholder="请输入手机号或邮箱">
+                </div>
+                <div class="form-group password-toggle">
+                    <label for="login-password">密码</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="请输入密码">
+                    <i class="fas fa-eye" id="toggle-login-password"></i>
+                </div>
+                <button class="btn btn-primary">登录</button>
+                <div class="auth-footer">
+                    <a href="#" style="color: #4a90e2;">忘记密码？</a>
+                </div>
+                <div class="social-login">
+                    <p>其他方式登录</p>
+                    <div class="social-icons">
+                        <div class="social-icon">
+                            <i class="fab fa-weixin"></i>
+                        </div>
+                        <div class="social-icon">
+                            <i class="fab fa-qq"></i>
+                        </div>
+                        <div class="social-icon">
+                            <i class="fab fa-weibo"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="register-content">
+                <div class="form-group">
+                    <label for="register-username">手机号</label>
+                    <input type="text" id="register-username" class="form-control" placeholder="请输入手机号">
+                </div>
+                <div class="form-group">
+                    <label for="register-email">邮箱</label>
+                    <input type="email" id="register-email" class="form-control" placeholder="请输入邮箱地址">
+                </div>
+                <div class="form-group">
+                    <label for="register-name">姓名</label>
+                    <input type="text" id="register-name" class="form-control" placeholder="请输入真实姓名">
+                </div>
+                <div class="form-group">
+                    <label for="register-student-id">学号</label>
+                    <input type="text" id="register-student-id" class="form-control" placeholder="请输入学号">
+                </div>
+                <div class="form-group">
+                    <label for="register-department">学院</label>
+                    <input type="text" id="register-department" class="form-control" placeholder="请输入所在学院">
+                </div>
+                <div class="form-group password-toggle">
+                    <label for="register-password">密码</label>
+                    <input type="password" id="register-password" class="form-control" placeholder="请输入密码">
+                    <i class="fas fa-eye" id="toggle-register-password"></i>
+                </div>
+                <div class="form-group password-toggle">
+                    <label for="register-confirm-password">确认密码</label>
+                    <input type="password" id="register-confirm-password" class="form-control" placeholder="请再次输入密码">
+                    <i class="fas fa-eye" id="toggle-register-confirm-password"></i>
+                </div>
+                <button class="btn btn-primary">注册</button>
+                <div class="auth-footer">
+                    <p>注册即表示同意<a href="#" style="color: #4a90e2;">《用户协议》</a>和<a href="#" style="color: #4a90e2;">《隐私政策》</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(`${tabName}-content`).classList.add('active');
+            });
+        });
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        document.getElementById('toggle-login-password').addEventListener('click', function() {
+            togglePassword('login-password', 'toggle-login-password');
+        });
+        document.getElementById('toggle-register-password').addEventListener('click', function() {
+            togglePassword('register-password', 'toggle-register-password');
+        });
+        document.getElementById('toggle-register-confirm-password').addEventListener('click', function() {
+            togglePassword('register-confirm-password', 'toggle-register-confirm-password');
+        });
+    </script>
+</body>
+</html>

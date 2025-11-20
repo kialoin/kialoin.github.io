@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统权限配置 - 校园非机动车管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background-color: #1e3a5f;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+        .sidebar-header {
+            padding: 20px;
+            background-color: #152a42;
+            border-bottom: 1px solid #2a4a6f;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 10px 0;
+        }
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #b8c5d6;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item.active {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item i {
+            width: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 20px;
+        }
+        .user-header {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            background-color: #4a90e2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+            color: white;
+        }
+        .user-details h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .user-details p {
+            color: #666;
+            font-size: 14px;
+        }
+        .user-actions button {
+            padding: 8px 16px;
+            margin-left: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .user-actions button:hover {
+            background-color: #3a7bc8;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .permission-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .permission-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3a5f;
+            border-bottom: 2px solid #e1e8ed;
+        }
+        .permission-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        .permission-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .role-admin {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .role-user {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .role-guest {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .permission-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .permission-toggle.active {
+            background-color: #4a90e2;
+        }
+        .permission-toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .permission-toggle.active::after {
+            transform: translateX(20px);
+        }
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .role-option {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .role-option.selected {
+            background-color: #4a90e2;
+            color: white;
+            border-color: #4a90e2;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #3a7bc8;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #4a90e2;
+            border: 1px solid #4a90e2;
+        }
+        .btn-outline:hover {
+            background-color: #4a90e2;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar-header h2,
+            .nav-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-bicycle"></i> 管理平台</h2>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-item"><i class="fas fa-home"></i><span>首页</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-plus-circle"></i><span>车辆登记</span></a></li>
+                    <li><a href="#" class="nav-item active"><i class="fas fa-user"></i><span>个人中心</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-map"></i><span>实时地图</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>违规记录</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-chart-bar"></i><span>数据分析</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-cog"></i><span>系统设置</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>退出登录</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="user-header">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3>管理员</h3>
+                        <p>角色：系统管理员 | 管理员ID：ADM001</p>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="btn btn-outline"><i class="fas fa-user-plus"></i> 新增用户</button>
+                    <button class="btn btn-primary"><i class="fas fa-save"></i> 保存配置</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-users"></i> 用户角色管理</h3>
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> 新增角色</button>
+                </div>
+                <div class="card-body">
+                    <div class="role-selector">
+                        <div class="role-option selected">系统管理员</div>
+                        <div class="role-option">普通用户</div>
+                        <div class="role-option">访客</div>
+                    </div>
+                    <table class="permission-table">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>所属角色</th>
+                                <th>账户状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>张三</td>
+                                <td><span class="role-badge role-admin">系统管理员</span></td>
+                                <td>正常</td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">编辑</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>李四</td>
+                                <td><span class="role-badge role-user">普通用户</span></td>
+                                <td>正常</td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">编辑</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>王五</td>
+                                <td><span class="role-badge role-guest">访客</span></td>
+                                <td>禁用</td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">编辑</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-lock"></i> 功能权限配置</h3>
+                </div>
+                <div class="card-body">
+                    <table class="permission-table">
+                        <thead>
+                            <tr>
+                                <th>功能模块</th>
+                                <th>系统管理员</th>
+                                <th>普通用户</th>
+                                <th>访客</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>车辆登记管理</td>
+                                <td><div class="permission-toggle active"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                            </tr>
+                            <tr>
+                                <td>违规记录查看</td>
+                                <td><div class="permission-toggle active"></div></td>
+                                <td><div class="permission-toggle active"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                            </tr>
+                            <tr>
+                                <td>数据分析报表</td>
+                                <td><div class="permission-toggle active"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                            </tr>
+                            <tr>
+                                <td>系统设置管理</td>
+                                <td><div class="permission-toggle active"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                            </tr>
+                            <tr>
+                                <td>权限配置管理</td>
+                                <td><div class="permission-toggle active"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                                <td><div class="permission-toggle"></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-database"></i> 数据访问范围配置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <h4><i class="fas fa-building"></i> 学院数据访问</h4>
+                            <div style="margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>计算机科学与技术学院</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>电子信息工程学院</label>
+                                    <div class="permission-toggle"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>机械工程学院</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <h4><i class="fas fa-map-marker-alt"></i> 地点数据访问</h4>
+                            <div style="margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>教学区</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>生活区</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>运动区</label>
+                                    <div class="permission-toggle"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <h4><i class="fas fa-clock"></i> 时间范围配置</h4>
+                            <div style="margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>最近7天</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>最近30天</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>全部历史</label>
+                                    <div class="permission-toggle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-shield-alt"></i> 安全策略设置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <h4><i class="fas fa-key"></i> 密码策略</h4>
+                            <div style="margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>密码最小长度</label>
+                                    <input type="number" value="8" style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px;">
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>密码复杂度要求</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>密码过期时间</label>
+                                    <input type="number" value="90" style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px;"> 天
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <h4><i class="fas fa-user-lock"></i> 登录安全</h4>
+                            <div style="margin: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>登录失败锁定</label>
+                                    <div class="permission-toggle active"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>双因素认证</label>
+                                    <div class="permission-toggle"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                                    <label>会话超时</label>
+                                    <input type="number" value="30" style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px;"> 分钟
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.role-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+            });
+        });
+        document.querySelectorAll('.permission-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>

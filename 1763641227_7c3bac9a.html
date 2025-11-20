@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时监控地图 - 非机动车管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            height: 60px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-right: 40px;
+        }
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            flex: 1;
+        }
+        .navbar-item {
+            margin-right: 30px;
+        }
+        .navbar-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .navbar-link:hover {
+            background-color: #f5f5f5;
+            color: #1976d2;
+        }
+        .navbar-link.active {
+            background-color: #1976d2;
+            color: #fff;
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #f44336;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+        }
+        .main-container {
+            margin-top: 60px;
+            height: calc(100vh - 60px);
+            display: flex;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .filter-section {
+            margin-bottom: 25px;
+        }
+        .filter-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-title i {
+            color: #1976d2;
+            font-size: 16px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        .filter-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #1976d2;
+        }
+        .filter-option label {
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        .status-normal {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-abnormal {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background-color: #1976d2;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #1565c0;
+        }
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .map-container {
+            flex: 1;
+            position: relative;
+            background-color: #fff;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 500;
+        }
+        .control-btn {
+            display: block;
+            width: 36px;
+            height: 36px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .control-btn:hover {
+            background-color: #f5f5f5;
+        }
+        .control-btn:last-child {
+            margin-bottom: 0;
+        }
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            z-index: 500;
+        }
+        .legend-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .legend-normal {
+            background-color: #4caf50;
+        }
+        .legend-abnormal {
+            background-color: #f44336;
+        }
+        .legend-moving {
+            background-color: #2196f3;
+        }
+        .track-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            z-index: 500;
+            display: none;
+            width: 300px;
+        }
+        .track-controls.active {
+            display: block;
+        }
+        .track-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .track-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .track-timeline {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .track-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .track-btn {
+            flex: 1;
+            padding: 8px;
+            background-color: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .track-btn:hover {
+            background-color: #1565c0;
+        }
+        .update-timestamp {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px 15px;
+            z-index: 500;
+            font-size: 13px;
+            color: #666;
+        }
+        .vehicle-popup {
+            min-width: 200px;
+        }
+        .popup-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .popup-info {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .popup-info div {
+            margin-bottom: 4px;
+        }
+        .popup-actions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 8px;
+        }
+        .popup-btn {
+            flex: 1;
+            padding: 6px;
+            font-size: 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .popup-btn-primary {
+            background-color: #1976d2;
+            color: #fff;
+        }
+        .popup-btn-secondary {
+            background-color: #f5f5f5;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 600;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+            .sidebar.mobile-open {
+                display: block;
+            }
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 20px;
+                color: #1976d2;
+                cursor: pointer;
+            }
+            .track-controls {
+                width: 90%;
+                right: 5%;
+            }
+        }
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="navbar-brand">
+                <i class="fas fa-bicycle"></i> 非机动车管理系统
+            </div>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-home"></i> 首页
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-plus-circle"></i> 车辆登记
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-user"></i> 个人中心
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link active">
+                        <i class="fas fa-map-marked-alt"></i> 实时监控
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-exclamation-triangle"></i> 违规查询
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-comment-dots"></i> 反馈报修
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-bell"></i> 消息通知
+                    </a>
+                </li>
+                <li class="navbar-item admin-only">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-cog"></i> 管理员
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-user">
+                <div class="notification-badge">
+                    <i class="far fa-bell" style="font-size: 20px; color: #666;"></i>
+                    <span class="notification-count">3</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="far fa-user-circle" style="font-size: 24px; color: #666;"></i>
+                    <span style="font-size: 14px; color: #333;">张三</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-search"></i> 车辆搜索
+                </div>
+                <input type="text" class="search-box" placeholder="输入车牌号或车辆ID" id="searchInput">
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-filter"></i> 车辆类型
+                </div>
+                <div class="filter-group">
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="bike" checked>
+                            <label for="bike">自行车</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="ebike" checked>
+                            <label for="ebike">电动车</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="motor" checked>
+                            <label for="motor">摩托车</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-info-circle"></i> 车辆状态
+                </div>
+                <div class="filter-group">
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="normal" checked>
+                            <label for="normal">正常停放</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="moving" checked>
+                            <label for="moving">行驶中</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="abnormal" checked>
+                            <label for="abnormal">异常停放</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-clock"></i> 时间范围
+                </div>
+                <div class="filter-group">
+                    <select style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option>实时数据</option>
+                        <option>最近1小时</option>
+                        <option>最近24小时</option>
+                        <option>最近7天</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-section">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-check"></i> 应用筛选
+                </button>
+                <button class="btn btn-secondary" onclick="resetFilters()">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-chart-bar"></i> 实时统计
+                </div>
+                <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #666;">在线车辆</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #1976d2;">156</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #666;">异常车辆</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #f44336;">12</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 13px; color: #666;">行驶中</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #4caf50;">28</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="update-timestamp">
+                <i class="fas fa-sync-alt"></i> 最后更新: <span id="lastUpdate">2024-01-15 14:32:45</span>
+            </div>
+            <div class="map-controls">
+                <button class="control-btn" onclick="zoomIn()" title="放大">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="control-btn" onclick="zoomOut()" title="缩小">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="control-btn" onclick="resetView()" title="重置视图">
+                    <i class="fas fa-compress"></i>
+                </button>
+                <button class="control-btn" onclick="toggleFullscreen()" title="全屏">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+            <div class="map-legend">
+                <div class="legend-title">图例说明</div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-normal"></div>
+                    <span style="font-size: 13px;">正常停放</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-abnormal"></div>
+                    <span style="font-size: 13px;">异常停放</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon legend-moving"></div>
+                    <span style="font-size: 13px;">行驶中</span>
+                </div>
+            </div>
+            <div class="track-controls" id="trackControls">
+                <div class="track-title">
+                    <i class="fas fa-route"></i> 轨迹回放 - 京A12345
+                </div>
+                <div class="track-info">
+                    回放时间: 2024-01-15 08:00 - 18:00
+                </div>
+                <input type="range" class="track-timeline" min="0" max="100" value="0" id="trackSlider">
+                <div class="track-buttons">
+                    <button class="track-btn" onclick="playTrack()">
+                        <i class="fas fa-play"></i> 播放
+                    </button>
+                    <button class="track-btn" onclick="pauseTrack()">
+                        <i class="fas fa-pause"></i> 暂停
+                    </button>
+                    <button class="track-btn" onclick="stopTrack()">
+                        <i class="fas fa-stop"></i> 停止
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let trackLine = null;
+        function initMap() {
+            map = L.map('map').setView([39.9042, 116.4074], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            addVehicleMarkers();
+            setInterval(updateVehicles, 5000);
+        }
+        function addVehicleMarkers() {
+            const vehicles = [
+                { id: '京A12345', lat: 39.9042, lng: 116.4074, type: 'ebike', status: 'normal', owner: '张三' },
+                { id: '京B67890', lat: 39.9052, lng: 116.4084, type: 'bike', status: 'abnormal', owner: '李四' },
+                { id: '京C11111', lat: 39.9032, lng: 116.4064, type: 'motor', status: 'moving', owner: '王五' },
+                { id: '京D22222', lat: 39.9062, lng: 116.4094, type: 'ebike', status: 'normal', owner: '赵六' },
+                { id: '京E33333', lat: 39.9022, lng: 116.4054, type: 'bike', status: 'moving', owner: '钱七' },
+                { id: '京F44444', lat: 39.9072, lng: 116.4104, type: 'ebike', status: 'abnormal', owner: '孙八' },
+                { id: '京G55555', lat: 39.9012, lng: 116.4044, type: 'motor', status: 'normal', owner: '周九' },
+                { id: '京H66666', lat: 39.9082, lng: 116.4114, type: 'bike', status: 'normal', owner: '吴十' }
+            ];
+            vehicles.forEach(vehicle => {
+                const icon = getVehicleIcon(vehicle.type, vehicle.status);
+                const marker = L.marker([vehicle.lat, vehicle.lng], { icon: icon })
+                    .addTo(map)
+                    .bindPopup(createPopupContent(vehicle));
+                markers.push(marker);
+            });
+        }
+        function getVehicleIcon(type, status) {
+            let iconColor = '#4caf50';
+            if (status === 'abnormal') iconColor = '#f44336';
+            if (status === 'moving') iconColor = '#2196f3';
+            let iconSymbol = '🚲';
+            if (type === 'ebike') iconSymbol = '🛵';
+            if (type === 'motor') iconSymbol = '🏍️';
+            return L.divIcon({
+                html: `<div style="background-color: ${iconColor}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${iconSymbol}</div>`,
+                iconSize: [30, 30],
+                className: 'vehicle-marker'
+            });
+        }
+        function createPopupContent(vehicle) {
+            const statusText = vehicle.status === 'normal' ? '正常停放' : 
+                              vehicle.status === 'abnormal' ? '异常停放' : '行驶中';
+            const statusClass = vehicle.status === 'normal' ? 'status-normal' : 
+                                vehicle.status === 'abnormal' ? 'status-abnormal' : 'status-normal';
+            return `
+                <div class="vehicle-popup">
+                    <div class="popup-title">
+                        <i class="fas fa-bicycle"></i> ${vehicle.id}
+                    </div>
+                    <div class="popup-info">
+                        <div><strong>车主:</strong> ${vehicle.owner}</div>
+                        <div><strong>类型:</strong> ${vehicle.type === 'bike' ? '自行车' : vehicle.type === 'ebike' ? '电动车' : '摩托车'}</div>
+                        <div><strong>状态:</strong> <span class="status-badge ${statusClass}">${statusText}</span></div>
+                        <div><strong>位置:</strong> ${vehicle.lat.toFixed(4)}, ${vehicle.lng.toFixed(4)}</div>
+                        <div><strong>最后更新:</strong> ${new Date().toLocaleTimeString()}</div>
+                    </div>
+                    <div class="popup-actions">
+                        <button class="popup-btn popup-btn-primary" onclick="viewTrack('${vehicle.id}')">
+                            <i class="fas fa-route"></i> 查看轨迹
+                        </button>
+                        <button class="popup-btn popup-btn-secondary" onclick="viewDetails('${vehicle.id}')">
+                            <i class="fas fa-info-circle"></i> 详情
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        function updateVehicles() {
+            markers.forEach((marker, index) => {
+                if (Math.random() > 0.7) {
+                    const lat = marker.getLatLng().lat + (Math.random() - 0.5) * 0.001;
+                    const lng = marker.getLatLng().lng + (Math.random() - 0.5) * 0.001;
+                    marker.setLatLng([lat, lng]);
+                }
+            });
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+        }
+        function zoomIn() {
+            map.zoomIn();
+        }
+        function zoomOut() {
+            map.zoomOut();
+        }
+        function resetView() {
+            map.setView([39.9042, 116.4074], 15);
+        }
+        function toggleFullscreen() {
+            const mapContainer = document.querySelector('.map-container');
+            if (!document.fullscreenElement) {
+                mapContainer.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        function viewTrack(vehicleId) {
+            document.getElementById('trackControls').classList.add('active');
+            const trackPoints = [
+                [39.9042, 116.4074],
+                [39.9045, 116.4078],
+                [39.9050, 116.4082],
+                [39.9055, 116.4085],
+                [39.9060, 116.4088]
+            ];
+            if (trackLine) {
+                map.removeLayer(trackLine);
+            }
+            trackLine = L.polyline(trackPoints, {
+                color: '#1976d2',
+                weight: 3,
+                opacity: 0.7,
+                smoothFactor: 1
+            }).addTo(map);
+            map.fitBounds(trackLine.getBounds());
+        }
+        function playTrack() {
+            console.log('播放轨迹');
+        }
+        function pauseTrack() {
+            console.log('暂停轨迹');
+        }
+        function stopTrack() {
+            document.getElementById('trackControls').classList.remove('active');
+            if (trackLine) {
+                map.removeLayer(trackLine);
+                trackLine = null;
+            }
+        }
+        function viewDetails(vehicleId) {
+            console.log('查看车辆详情:', vehicleId);
+        }
+        function applyFilters() {
+            console.log('应用筛选');
+        }
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            console.log('重置筛选');
+        }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                markers.forEach(marker => {
+                    const popup = marker.getPopup();
+                    if (popup) {
+                        const content = popup.getContent();
+                        if (content.toLowerCase().includes(searchTerm) || searchTerm === '') {
+                            marker.setOpacity(1);
+                        } else {
+                            marker.setOpacity(0.3);
+                        }
+                    }
+                });
+            });
+            document.getElementById('trackSlider').addEventListener('input', function(e) {
+                console.log('轨迹进度:', e.target.value + '%');
+            });
+        });
+    </script>
+</body>
+</html>

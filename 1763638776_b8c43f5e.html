@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时监控地图 - 校园非机动车管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background-color: #1e3a5f;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+        .sidebar-header {
+            padding: 20px;
+            background-color: #152a42;
+            border-bottom: 1px solid #2a4a6f;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 10px 0;
+        }
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #b8c5d6;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item.active {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item i {
+            width: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 20px;
+        }
+        .user-header {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            background-color: #4a90e2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+            color: white;
+        }
+        .user-details h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .user-details p {
+            color: #666;
+            font-size: 14px;
+        }
+        .user-actions button {
+            padding: 8px 16px;
+            margin-left: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .user-actions button:hover {
+            background-color: #3a7bc8;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .map-container {
+            height: 500px;
+            background-color: #f0f2f5;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .map-overlay h4 {
+            margin-bottom: 10px;
+            color: #1e3a5f;
+        }
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .filter-btn {
+            padding: 6px 12px;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background-color: #4a90e2;
+            color: white;
+        }
+        .refresh-btn {
+            padding: 6px 12px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .refresh-btn:hover {
+            background-color: #3a7bc8;
+        }
+        .area-layer {
+            position: absolute;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .area-free {
+            background-color: rgba(40, 167, 69, 0.2);
+            border-color: #28a745;
+        }
+        .area-occupied {
+            background-color: rgba(220, 53, 69, 0.2);
+            border-color: #dc3545;
+        }
+        .area-disabled {
+            background-color: rgba(108, 117, 125, 0.2);
+            border-color: #6c757d;
+        }
+        .area-highlight {
+            border-color: #ffc107 !important;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+        }
+        .area-label {
+            position: absolute;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        .legend-free { background-color: #28a745; }
+        .legend-occupied { background-color: #dc3545; }
+        .legend-disabled { background-color: #6c757d; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .stat-free { color: #28a745; }
+        .stat-occupied { color: #dc3545; }
+        .stat-disabled { color: #6c757d; }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar-header h2,
+            .nav-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-bicycle"></i> 管理平台</h2>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-item"><i class="fas fa-home"></i><span>首页</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-plus-circle"></i><span>车辆登记</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-user"></i><span>个人中心</span></a></li>
+                    <li><a href="#" class="nav-item active"><i class="fas fa-map"></i><span>实时地图</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>违规记录</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-chart-bar"></i><span>数据分析</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-cog"></i><span>系统设置</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>退出登录</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="user-header">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3>张三</h3>
+                        <p>学号：2021001234 | 计算机科学与技术学院</p>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="btn btn-outline"><i class="fas fa-sync-alt"></i> 刷新数据</button>
+                    <button class="btn btn-primary"><i class="fas fa-map-marker-alt"></i> 导航到车辆</button>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">总区域数</div>
+                    <div class="stat-number stat-free">24</div>
+                    <div class="stat-label">个</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">空闲区域</div>
+                    <div class="stat-number stat-free">8</div>
+                    <div class="stat-label">个</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">占用区域</div>
+                    <div class="stat-number stat-occupied">12</div>
+                    <div class="stat-label">个</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">禁停区域</div>
+                    <div class="stat-number stat-disabled">4</div>
+                    <div class="stat-label">个</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-map-marked-alt"></i> 停放区域监控</h3>
+                    <div>
+                        <button class="refresh-btn"><i class="fas fa-sync-alt"></i> 刷新状态</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="map-container">
+                        <div class="map-overlay">
+                            <h4>区域筛选</h4>
+                            <div class="filter-group">
+                                <button class="filter-btn active">全部</button>
+                                <button class="filter-btn">空闲</button>
+                                <button class="filter-btn">占用</button>
+                                <button class="filter-btn">禁停</button>
+                            </div>
+                            <div class="legend">
+                                <div class="legend-item">
+                                    <div class="legend-color legend-free"></div>
+                                    <span>空闲</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color legend-occupied"></div>
+                                    <span>占用</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color legend-disabled"></div>
+                                    <span>禁停</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="area-layer area-free" style="top: 20px; left: 20px; width: 120px; height: 80px;">
+                            <div class="area-label">教学楼A区</div>
+                        </div>
+                        <div class="area-layer area-occupied" style="top: 20px; left: 160px; width: 120px; height: 80px;">
+                            <div class="area-label">图书馆区</div>
+                        </div>
+                        <div class="area-layer area-disabled" style="top: 20px; left: 300px; width: 120px; height: 80px;">
+                            <div class="area-label">消防通道</div>
+                        </div>
+                        <div class="area-layer area-free" style="top: 120px; left: 20px; width: 120px; height: 80px;">
+                            <div class="area-label">实验楼B区</div>
+                        </div>
+                        <div class="area-layer area-occupied" style="top: 120px; left: 160px; width: 120px; height: 80px;">
+                            <div class="area-label">体育馆区</div>
+                        </div>
+                        <div class="area-layer area-free" style="top: 120px; left: 300px; width: 120px; height: 80px;">
+                            <div class="area-label">宿舍区</div>
+                        </div>
+                        <div class="area-layer area-occupied" style="top: 220px; left: 20px; width: 120px; height: 80px;">
+                            <div class="area-label">食堂区</div>
+                        </div>
+                        <div class="area-layer area-disabled" style="top: 220px; left: 160px; width: 120px; height: 80px;">
+                            <div class="area-label">施工区域</div>
+                        </div>
+                        <div class="area-layer area-free" style="top: 220px; left: 300px; width: 120px; height: 80px;">
+                            <div class="area-label">行政楼区</div>
+                        </div>
+                        <div class="area-layer area-occupied" style="top: 320px; left: 20px; width: 120px; height: 80px;">
+                            <div class="area-label">学生活动中心</div>
+                        </div>
+                        <div class="area-layer area-free" style="top: 320px; left: 160px; width: 120px; height: 80px;">
+                            <div class="area-label">校医院区</div>
+                        </div>
+                        <div class="area-layer area-occupied" style="top: 320px; left: 300px; width: 120px; height: 80px;">
+                            <div class="area-label">艺术楼区</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> 违规区域监控</h3>
+                    <div>
+                        <select style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option>所有违规</option>
+                            <option>违规停车</option>
+                            <option>超时停放</option>
+                            <option>占用消防通道</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="vehicle-list">
+                        <div class="vehicle-item">
+                            <div class="vehicle-icon">
+                                <i class="fas fa-bicycle"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <h4>违规车辆 - 捷安特ATX810</h4>
+                                <p>位置：图书馆门口 | 违规类型：违规停车 | 时间：2024-01-20 14:30</p>
+                            </div>
+                            <span class="vehicle-status status-rejected">已处理</span>
+                        </div>
+                        <div class="vehicle-item">
+                            <div class="vehicle-icon">
+                                <i class="fas fa-motorcycle"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <h4>违规车辆 - 雅迪E8</h4>
+                                <p>位置：教学楼A区 | 违规类型：超时停放 | 时间：2024-01-20 10:15</p>
+                            </div>
+                            <span class="vehicle-status status-pending">处理中</span>
+                        </div>
+                        <div class="vehicle-item">
+                            <div class="vehicle-icon">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="vehicle-info">
+                                <h4>违规车辆 - 奥拓轿车</h4>
+                                <p>位置：消防通道 | 违规类型：占用消防通道 | 时间：2024-01-19 16:45</p>
+                            </div>
+                            <span class="vehicle-status status-rejected">已处理</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.querySelector('.refresh-btn').addEventListener('click', function() {
+            const refreshBtn = this;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刷新中...';
+            setTimeout(() => {
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 刷新状态';
+                alert('地图数据已刷新！');
+            }, 1000);
+        });
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filterType = this.textContent;
+                if (filterType === '全部') {
+                    document.querySelectorAll('.area-layer').forEach(layer => {
+                        layer.style.display = 'block';
+                    });
+                } else {
+                    document.querySelectorAll('.area-layer').forEach(layer => {
+                        layer.style.display = 'none';
+                    });
+                    document.querySelectorAll(`.area-${filterType === '空闲' ? 'free' : filterType === '占用' ? 'occupied' : 'disabled'}`).forEach(layer => {
+                        layer.style.display = 'block';
+                    });
+                }
+            });
+        });
+        document.querySelectorAll('.area-layer').forEach(area => {
+            area.addEventListener('click', function() {
+                document.querySelectorAll('.area-layer').forEach(a => a.classList.remove('area-highlight'));
+                this.classList.add('area-highlight');
+            });
+        });
+        window.addEventListener('resize', function() {
+        });
+    </script>
+</body>
+</html>

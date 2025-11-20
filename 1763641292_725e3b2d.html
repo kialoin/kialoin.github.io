@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息通知中心 - 非机动车管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            height: 60px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-right: 40px;
+        }
+        .navbar-menu {
+            display: flex;
+            list-style: none;
+            flex: 1;
+        }
+        .navbar-item {
+            margin-right: 30px;
+        }
+        .navbar-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .navbar-link:hover {
+            background-color: #f5f5f5;
+            color: #1976d2;
+        }
+        .navbar-link.active {
+            background-color: #1976d2;
+            color: #fff;
+        }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #f44336;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+        }
+        .main-container {
+            margin-top: 60px;
+            height: calc(100vh - 60px);
+            display: flex;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .filter-section {
+            margin-bottom: 25px;
+        }
+        .filter-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-title i {
+            color: #1976d2;
+            font-size: 16px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        .filter-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #1976d2;
+        }
+        .filter-option label {
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        .status-normal {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-abnormal {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background-color: #1976d2;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #1565c0;
+        }
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .message-center {
+            flex: 1;
+            background-color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .message-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        .message-filters {
+            display: flex;
+            gap: 10px;
+        }
+        .filter-btn {
+            padding: 6px 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background-color: #1976d2;
+            color: #fff;
+            border-color: #1976d2;
+        }
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message-item {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .message-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: #1976d2;
+        }
+        .message-item.unread {
+            background-color: #e3f2fd;
+            border-left: 4px solid #1976d2;
+        }
+        .message-header-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .message-type {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .type-warning {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        .type-notice {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .type-system {
+            background-color: #f1f8e9;
+            color: #388e3c;
+        }
+        .message-time {
+            font-size: 12px;
+            color: #999;
+        }
+        .message-content {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .message-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            padding: 4px 10px;
+            background-color: transparent;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #f5f5f5;
+        }
+        .mark-read {
+            color: #1976d2;
+        }
+        .delete-btn {
+            color: #f44336;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 600;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+            .sidebar.mobile-open {
+                display: block;
+            }
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 20px;
+                color: #1976d2;
+                cursor: pointer;
+            }
+            .message-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .message-filters {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="navbar-brand">
+                <i class="fas fa-bicycle"></i> 非机动车管理系统
+            </div>
+            <ul class="navbar-menu">
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-home"></i> 首页
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-plus-circle"></i> 车辆登记
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-user"></i> 个人中心
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-map-marked-alt"></i> 实时监控
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-exclamation-triangle"></i> 违规查询
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-comment-dots"></i> 反馈报修
+                    </a>
+                </li>
+                <li class="navbar-item">
+                    <a href="#" class="navbar-link active">
+                        <i class="fas fa-bell"></i> 消息通知
+                    </a>
+                </li>
+                <li class="navbar-item admin-only">
+                    <a href="#" class="navbar-link">
+                        <i class="fas fa-cog"></i> 管理员
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-user">
+                <div class="notification-badge">
+                    <i class="far fa-bell" style="font-size: 20px; color: #666;"></i>
+                    <span class="notification-count">3</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="far fa-user-circle" style="font-size: 24px; color: #666;"></i>
+                    <span style="font-size: 14px; color: #333;">张三</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-filter"></i> 消息分类
+                </div>
+                <div class="filter-group">
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="all" checked>
+                            <label for="all">全部</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="warning" checked>
+                            <label for="warning">违规提醒</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="notice" checked>
+                            <label for="notice">公告推送</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="system" checked>
+                            <label for="system">系统通知</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-eye"></i> 已读状态
+                </div>
+                <div class="filter-group">
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="unread" checked>
+                            <label for="unread">未读消息</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="read" checked>
+                            <label for="read">已读消息</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-clock"></i> 时间范围
+                </div>
+                <div class="filter-group">
+                    <select style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option>最近1小时</option>
+                        <option>最近24小时</option>
+                        <option>最近7天</option>
+                        <option>最近30天</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-section">
+                <button class="btn btn-primary" onclick="applyMessageFilters()">
+                    <i class="fas fa-check"></i> 应用筛选
+                </button>
+                <button class="btn btn-secondary" onclick="resetMessageFilters()">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-chart-bar"></i> 消息统计
+                </div>
+                <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #666;">总消息数</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #1976d2;">42</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 13px; color: #666;">未读消息</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #f44336;">8</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="font-size: 13px; color: #666;">已读消息</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #4caf50;">34</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <div class="message-center">
+            <div class="message-header">
+                <h2 class="message-title">消息通知中心</h2>
+                <div class="message-filters">
+                    <button class="filter-btn active">全部</button>
+                    <button class="filter-btn">未读</button>
+                    <button class="filter-btn">已读</button>
+                    <button class="filter-btn">重要</button>
+                </div>
+            </div>
+            <div class="message-list">
+                <div class="message-item unread">
+                    <div class="message-header-info">
+                        <span class="message-type type-warning">违规提醒</span>
+                        <span class="message-time">2024-01-15 14:30</span>
+                    </div>
+                    <div class="message-content">
+                        您的车辆（京A12345）于今日14:00在中山路违规停放，请及时处理。
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn mark-read"><i class="fas fa-check"></i> 标记已读</button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+                <div class="message-item unread">
+                    <div class="message-header-info">
+                        <span class="message-type type-notice">公告推送</span>
+                        <span class="message-time">2024-01-15 12:15</span>
+                    </div>
+                    <div class="message-content">
+                        系统将于今晚22:00至次日6:00进行维护升级，届时部分功能将暂时不可用。
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn mark-read"><i class="fas fa-check"></i> 标记已读</button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-header-info">
+                        <span class="message-type type-system">系统通知</span>
+                        <span class="message-time">2024-01-14 10:45</span>
+                    </div>
+                    <div class="message-content">
+                        您的车辆注册申请已通过审核，现在可以正常使用相关功能。
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn mark-read"><i class="fas fa-check"></i> 标记未读</button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-header-info">
+                        <span class="message-type type-warning">违规提醒</span>
+                        <span class="message-time">2024-01-13 16:20</span>
+                    </div>
+                    <div class="message-content">
+                        您的车辆（京B67890）于昨日15:30在解放路违规停放，已被系统记录。
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn mark-read"><i class="fas fa-check"></i> 标记未读</button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-header-info">
+                        <span class="message-type type-notice">公告推送</span>
+                        <span class="message-time">2024-01-12 09:00</span>
+                    </div>
+                    <div class="message-content">
+                        本周六将举办非机动车安全使用培训，请相关人员准时参加。
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn mark-read"><i class="fas fa-check"></i> 标记未读</button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-header-info">
+                        <span class="message-type type-system">系统通知</span>
+                        <span class="message-time">2024-01-11 18:30</span>
+                    </div>
+                    <div class="message-content">
+                        您的账户密码已成功修改，如非本人操作请立即联系管理员。
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn mark-read"><i class="fas fa-check"></i> 标记未读</button>
+                        <button class="action-btn delete-btn"><i class="fas fa-trash"></i> 删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+        function applyMessageFilters() {
+            console.log('应用消息筛选');
+        }
+        function resetMessageFilters() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            console.log('重置消息筛选');
+        }
+        function markRead(button) {
+            const messageItem = button.closest('.message-item');
+            if (messageItem.classList.contains('unread')) {
+                messageItem.classList.remove('unread');
+                button.innerHTML = '<i class="fas fa-check"></i> 标记未读';
+                button.classList.remove('mark-read');
+                button.classList.add('mark-unread');
+            } else {
+                messageItem.classList.add('unread');
+                button.innerHTML = '<i class="fas fa-check"></i> 标记已读';
+                button.classList.remove('mark-unread');
+                button.classList.add('mark-read');
+            }
+        }
+        function deleteMessage(button) {
+            const messageItem = button.closest('.message-item');
+            messageItem.style.opacity = '0';
+            setTimeout(() => {
+                messageItem.remove();
+            }, 300);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.mark-read').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    markRead(this);
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deleteMessage(this);
+                });
+            });
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

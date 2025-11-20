@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据统计分析 - 校园非机动车管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background-color: #1e3a5f;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+        .sidebar-header {
+            padding: 20px;
+            background-color: #152a42;
+            border-bottom: 1px solid #2a4a6f;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .nav-menu {
+            list-style: none;
+            padding: 10px 0;
+        }
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #b8c5d6;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item.active {
+            background-color: #234770;
+            color: white;
+            border-left-color: #4a90e2;
+        }
+        .nav-item i {
+            width: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 20px;
+        }
+        .user-header {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            background-color: #4a90e2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+            color: white;
+        }
+        .user-details h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .user-details p {
+            color: #666;
+            font-size: 14px;
+        }
+        .user-actions button {
+            padding: 8px 16px;
+            margin-left: 10px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .user-actions button:hover {
+            background-color: #3a7bc8;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #e1e8ed;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .time-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .time-filter select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .export-btn {
+            padding: 8px 16px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .export-btn:hover {
+            background-color: #3a7bc8;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3a5f;
+            border-bottom: 2px solid #e1e8ed;
+        }
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar-header h2,
+            .nav-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-bicycle"></i> 管理平台</h2>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-item"><i class="fas fa-home"></i><span>首页</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-plus-circle"></i><span>车辆登记</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-user"></i><span>个人中心</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-map"></i><span>实时地图</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>违规记录</span></a></li>
+                    <li><a href="#" class="nav-item active"><i class="fas fa-chart-bar"></i><span>数据分析</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-cog"></i><span>系统设置</span></a></li>
+                    <li><a href="#" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>退出登录</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="user-header">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3>管理员</h3>
+                        <p>权限：系统管理员</p>
+                    </div>
+                </div>
+                <div class="user-actions">
+                    <button class="btn btn-outline"><i class="fas fa-download"></i> 导出报表</button>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">总违规次数</div>
+                    <div class="stat-value">1,248</div>
+                    <div class="stat-label">较上月 +12%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">违规区域数量</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-label">覆盖全校主要区域</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">平均处理时长</div>
+                    <div class="stat-value">2.3小时</div>
+                    <div class="stat-label">同比减少 15%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">违规类型分布</div>
+                    <div class="stat-value">8大类</div>
+                    <div class="stat-label">涵盖所有违规场景</div>
+                </div>
+            </div>
+            <div class="time-filter">
+                <select>
+                    <option>最近7天</option>
+                    <option>最近30天</option>
+                    <option>最近90天</option>
+                    <option>最近一年</option>
+                </select>
+                <button class="export-btn"><i class="fas fa-file-export"></i> 导出数据</button>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-line"></i> 违规趋势分析</h3>
+                </div>
+                <div class="card-body">
+                    <div id="violationTrendChart" class="chart-container"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-map-marked-alt"></i> 区域使用率统计</h3>
+                </div>
+                <div class="card-body">
+                    <div id="areaUsageChart" class="chart-container"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-clock"></i> 时间分布分析</h3>
+                </div>
+                <div class="card-body">
+                    <div id="timeDistributionChart" class="chart-container"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-list"></i> 违规类型详情</h3>
+                </div>
+                <div class="card-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>违规类型</th>
+                                <th>违规次数</th>
+                                <th>占比</th>
+                                <th>处理状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>违规停车</td>
+                                <td>423</td>
+                                <td>33.9%</td>
+                                <td>已处理</td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">查看详情</button></td>
+                            </tr>
+                            <tr>
+                                <td>占用消防通道</td>
+                                <td>210</td>
+                                <td>16.8%</td>
+                                <td>已处理</td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">查看详情</button></td>
+                            </tr>
+                            <tr>
+                                <td>超时停放</td>
+                                <td>185</td>
+                                <td>14.8%</td>
+                                <td>申诉中</td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">查看详情</button></td>
+                            </tr>
+                            <tr>
+                                <td>未登记上牌</td>
+                                <td>156</td>
+                                <td>12.5%</td>
+                                <td>已处理</td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">查看详情</button></td>
+                            </tr>
+                            <tr>
+                                <td>乱停乱放</td>
+                                <td>124</td>
+                                <td>9.9%</td>
+                                <td>已处理</td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 12px;">查看详情</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        var trendChartDom = document.getElementById('violationTrendChart');
+        var trendChart = echarts.init(trendChartDom);
+        var trendOption;
+        trendOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['违规次数', '处理次数']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name: '违规次数',
+                    type: 'line',
+                    data: [120, 132, 101, 134, 90, 230, 210],
+                    itemStyle: {
+                        color: '#ff6b6b'
+                    },
+                    smooth: true
+                },
+                {
+                    name: '处理次数',
+                    type: 'line',
+                    data: [80, 92, 71, 94, 50, 130, 110],
+                    itemStyle: {
+                        color: '#4a90e2'
+                    },
+                    smooth: true
+                }
+            ]
+        };
+        trendChart.setOption(trendOption);
+        var areaChartDom = document.getElementById('areaUsageChart');
+        var areaChart = echarts.init(areaChartDom);
+        var areaOption;
+        areaOption = {
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                top: '5%',
+                left: 'center'
+            },
+            series: [
+                {
+                    name: '区域使用率',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '18',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        { value: 335, name: '教学区' },
+                        { value: 679, name: '生活区' },
+                        { value: 1548, name: '运动区' },
+                        { value: 234, name: '行政办公区' },
+                        { value: 135, name: '其他区域' }
+                    ]
+                }
+            ]
+        };
+        areaChart.setOption(areaOption);
+        var timeChartDom = document.getElementById('timeDistributionChart');
+        var timeChart = echarts.init(timeChartDom);
+        var timeOption;
+        timeOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['上午', '下午', '晚上']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['08:00-10:00', '10:00-12:00', '12:00-14:00', '14:00-16:00', '16:00-18:00', '18:00-20:00', '20:00-22:00']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name: '上午',
+                    type: 'bar',
+                    data: [120, 132, 101, 134, 90, 230, 210],
+                    itemStyle: {
+                        color: '#4a90e2'
+                    }
+                },
+                {
+                    name: '下午',
+                    type: 'bar',
+                    data: [220, 182, 191, 234, 290, 330, 310],
+                    itemStyle: {
+                        color: '#ff6b6b'
+                    }
+                },
+                {
+                    name: '晚上',
+                    type: 'bar',
+                    data: [150, 232, 201, 154, 190, 330, 410],
+                    itemStyle: {
+                        color: '#50c878'
+                    }
+                }
+            ]
+        };
+        timeChart.setOption(timeOption);
+        window.addEventListener('resize', function() {
+            trendChart.resize();
+            areaChart.resize();
+            timeChart.resize();
+        });
+    </script>
+</body>
+</html>

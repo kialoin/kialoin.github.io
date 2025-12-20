@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>库存管理系统 - 数据备份与恢复</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .navbar {
+            width: 240px;
+            background-color: #ffffff;
+            border-right: 1px solid #e1e4e8;
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-header {
+            padding: 20px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .nav-header h1 {
+            font-size: 18px;
+            color: #24292e;
+        }
+        .nav-menu {
+            flex: 1;
+            padding: 10px 0;
+        }
+        .nav-item {
+            padding: 12px 20px;
+            font-size: 14px;
+            color: #586069;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: #f1f8ff;
+            color: #0366d6;
+            border-left: 3px solid #0366d6;
+        }
+        .nav-item i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .user-panel {
+            padding: 20px;
+            border-top: 1px solid #e1e4e8;
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background-color: #0366d6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .user-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .user-action {
+            color: #586069;
+            font-size: 16px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 24px;
+            color: #24292e;
+            margin-bottom: 5px;
+        }
+        .page-description {
+            font-size: 14px;
+            color: #586069;
+        }
+        .table-container {
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #0366d6;
+            border-radius: 4px;
+            background-color: #0366d6;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn:hover {
+            background-color: #0356b6;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #0366d6;
+        }
+        .btn-outline:hover {
+            background-color: #f1f8ff;
+        }
+        .btn i {
+            margin-right: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        th {
+            font-weight: 500;
+            color: #586069;
+            font-size: 14px;
+        }
+        tr:hover {
+            background-color: #f6f8fa;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.success {
+            background-color: #f0fff4;
+            color: #28a745;
+        }
+        .status.failed {
+            background-color: #fff5f5;
+            color: #dc3545;
+        }
+        .status.pending {
+            background-color: #fff8e1;
+            color: #ffc107;
+        }
+        .backup-strategy {
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .strategy-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .strategy-form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-label {
+            font-size: 14px;
+            color: #586069;
+        }
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 200px;
+        }
+        .progress-container {
+            margin-top: 20px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #e1e4e8;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #0366d6;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 12px;
+            color: #586069;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-header">
+                <h1><i class="fas fa-boxes"></i> 库存管理系统</h1>
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item">
+                    <i class="fas fa-home"></i> 仪表盘
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-box"></i> 产品管理
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i> 库存操作
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-search"></i> 查询与报表
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-bell"></i> 预警设置
+                </a>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-database"></i> 数据备份与恢复
+                </a>
+            </div>
+            <div class="user-panel">
+                <div class="user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name">管理员</div>
+                </div>
+                <div class="user-actions">
+                    <a href="#" class="user-action"><i class="far fa-bell"></i></a>
+                    <a href="#" class="user-action"><i class="fas fa-cog"></i></a>
+                </div>
+            </div>
+        </nav>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">数据备份与恢复</h1>
+                <p class="page-description">数据管理界面，展示备份历史列表，支持手动触发备份操作和数据恢复功能</p>
+            </div>
+            <div class="backup-strategy">
+                <div class="strategy-header">
+                    <div class="strategy-title">备份策略设置</div>
+                </div>
+                <div class="strategy-form">
+                    <div class="form-group">
+                        <label class="form-label">自动备份频率</label>
+                        <select class="form-control">
+                            <option>每日</option>
+                            <option>每周</option>
+                            <option>每月</option>
+                            <option>手动</option>
+                        </select>
+                    </div>
+                    <button class="btn">
+                        <i class="fas fa-save"></i> 保存设置
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">备份历史记录</div>
+                    <div class="table-actions">
+                        <button class="btn btn-outline">
+                            <i class="fas fa-sync-alt"></i> 手动备份
+                        </button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>状态</th>
+                            <th>操作人</th>
+                            <th>文件大小</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023-10-30 14:30:00</td>
+                            <td><span class="status success">成功</span></td>
+                            <td>管理员</td>
+                            <td>245.6 MB</td>
+                            <td>
+                                <a href="#" class="btn btn-outline">
+                                    <i class="fas fa-download"></i> 下载
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2023-10-29 10:15:00</td>
+                            <td><span class="status success">成功</span></td>
+                            <td>管理员</td>
+                            <td>242.3 MB</td>
+                            <td>
+                                <a href="#" class="btn btn-outline">
+                                    <i class="fas fa-download"></i> 下载
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2023-10-28 09:45:00</td>
+                            <td><span class="status failed">失败</span></td>
+                            <td>管理员</td>
+                            <td>-</td>
+                            <td>
+                                <a href="#" class="btn btn-outline">
+                                    <i class="fas fa-redo"></i> 重试
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2023-10-27 16:20:00</td>
+                            <td><span class="status success">成功</span></td>
+                            <td>管理员</td>
+                            <td>241.8 MB</td>
+                            <td>
+                                <a href="#" class="btn btn-outline">
+                                    <i class="fas fa-download"></i> 下载
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2023-10-26 11:30:00</td>
+                            <td><span class="status pending">进行中</span></td>
+                            <td>管理员</td>
+                            <td>-</td>
+                            <td>
+                                <a href="#" class="btn btn-outline">
+                                    <i class="fas fa-times"></i> 取消
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">当前操作进度</div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>正在执行备份任务...</span>
+                        <span class="progress-text">已完成 65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

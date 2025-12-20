@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>库存管理系统 - 钢材产品管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .navbar {
+            width: 240px;
+            background-color: #ffffff;
+            border-right: 1px solid #e1e4e8;
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-header {
+            padding: 20px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .nav-header h1 {
+            font-size: 18px;
+            color: #24292e;
+        }
+        .nav-menu {
+            flex: 1;
+            padding: 10px 0;
+        }
+        .nav-item {
+            padding: 12px 20px;
+            font-size: 14px;
+            color: #586069;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: #f1f8ff;
+            color: #0366d6;
+            border-left: 3px solid #0366d6;
+        }
+        .nav-item i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .user-panel {
+            padding: 20px;
+            border-top: 1px solid #e1e4e8;
+            display: flex;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background-color: #0366d6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .user-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .user-action {
+            color: #586069;
+            font-size: 16px;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 24px;
+            color: #24292e;
+            margin-bottom: 5px;
+        }
+        .page-description {
+            font-size: 14px;
+            color: #586069;
+        }
+        .search-filter-bar {
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background-color: #0366d6;
+            color: white;
+        }
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #0366d6;
+            color: #0366d6;
+        }
+        .table-container {
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .table-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .pagination {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #e1e4e8;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .pagination-btn.active {
+            background-color: #0366d6;
+            color: white;
+            border-color: #0366d6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        th {
+            background-color: #f6f8fa;
+            font-weight: 500;
+            color: #586069;
+            font-size: 14px;
+        }
+        tr:hover {
+            background-color: #f6f8fa;
+        }
+        .action-cell {
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .edit-btn {
+            background-color: #f1f8ff;
+            color: #0366d6;
+        }
+        .delete-btn {
+            background-color: #ffeef0;
+            color: #d73a49;
+        }
+        .form-container {
+            background: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 20px;
+        }
+        .form-header {
+            margin-bottom: 20px;
+        }
+        .form-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-label {
+            font-size: 14px;
+            color: #24292e;
+            margin-bottom: 5px;
+        }
+        .form-input {
+            padding: 8px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e1e4e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #24292e;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #586069;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e1e4e8;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .confirm-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .confirm-btn.yes {
+            background-color: #d73a49;
+            color: white;
+        }
+        .confirm-btn.no {
+            background-color: #f6f8fa;
+            color: #586069;
+            border: 1px solid #e1e4e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-header">
+                <h1><i class="fas fa-boxes"></i> 库存管理系统</h1>
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item">
+                    <i class="fas fa-home"></i> 仪表盘
+                </a>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-box"></i> 产品管理
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i> 库存操作
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-search"></i> 查询与报表
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-bell"></i> 预警设置
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i> 系统管理
+                </a>
+            </div>
+            <div class="user-panel">
+                <div class="user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name">管理员</div>
+                </div>
+                <div class="user-actions">
+                    <a href="#" class="user-action"><i class="far fa-bell"></i></a>
+                    <a href="#" class="user-action"><i class="fas fa-cog"></i></a>
+                </div>
+            </div>
+        </nav>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">钢材产品管理</h1>
+                <p class="page-description">钢材产品CRUD操作界面，包含产品列表展示、添加/编辑产品表单、批量导入/导出Excel功能</p>
+            </div>
+            <div class="search-filter-bar">
+                <input type="text" class="search-input" placeholder="搜索产品名称或规格...">
+                <select class="filter-select">
+                    <option>所有钢材类型</option>
+                    <option>型钢</option>
+                    <option>板材</option>
+                    <option>管材</option>
+                </select>
+                <select class="filter-select">
+                    <option>所有状态</option>
+                    <option>启用</option>
+                    <option>禁用</option>
+                </select>
+                <div class="action-buttons">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-file-export"></i> 导出Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i> 添加产品
+                    </button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">钢材产品列表</div>
+                    <div class="pagination">
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <span>...</span>
+                        <button class="pagination-btn">10</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>产品名称</th>
+                            <th>钢材类型</th>
+                            <th>规格</th>
+                            <th>材质</th>
+                            <th>单价</th>
+                            <th>库存</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1001</td>
+                            <td>H型钢 200*100*5.5*8</td>
+                            <td>型钢</td>
+                            <td>200×100×5.5×8</td>
+                            <td>Q345B</td>
+                            <td>¥4,800.00</td>
+                            <td>120</td>
+                            <td><span style="color: #28a745;">启用</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn edit-btn" onclick="openEditModal(this)">编辑</button>
+                                <button class="action-btn delete-btn" onclick="confirmDelete(this)">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>1002</td>
+                            <td>螺纹钢 Φ12mm HRB400</td>
+                            <td>钢筋</td>
+                            <td>Φ12mm</td>
+                            <td>HRB400</td>
+                            <td>¥4,200.00</td>
+                            <td>85</td>
+                            <td><span style="color: #28a745;">启用</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn edit-btn" onclick="openEditModal(this)">编辑</button>
+                                <button class="action-btn delete-btn" onclick="confirmDelete(this)">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>1003</td>
+                            <td>钢板 10mm*1500*6000</td>
+                            <td>板材</td>
+                            <td>10mm×1500×6000</td>
+                            <td>Q345B</td>
+                            <td>¥8,500.00</td>
+                            <td>42</td>
+                            <td><span style="color: #dc3545;">禁用</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn edit-btn" onclick="openEditModal(this)">编辑</button>
+                                <button class="action-btn delete-btn" onclick="confirmDelete(this)">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>1004</td>
+                            <td>圆钢 Φ20mm Q235B</td>
+                            <td>圆钢</td>
+                            <td>Φ20mm</td>
+                            <td>Q235B</td>
+                            <td>¥3,900.00</td>
+                            <td>210</td>
+                            <td><span style="color: #28a745;">启用</span></td>
+                            <td class="action-cell">
+                                <button class="action-btn edit-btn" onclick="openEditModal(this)">编辑</button>
+                                <button class="action-btn delete-btn" onclick="confirmDelete(this)">删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="form-container">
+                <div class="form-header">
+                    <div class="form-title">钢材产品信息</div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">产品名称</label>
+                        <input type="text" class="form-input" placeholder="请输入产品名称">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">钢材类型</label>
+                        <select class="form-input">
+                            <option>型钢</option>
+                            <option>板材</option>
+                            <option>管材</option>
+                            <option>钢筋</option>
+                            <option>圆钢</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">规格</label>
+                        <input type="text" class="form-input" placeholder="请输入规格">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">材质</label>
+                        <input type="text" class="form-input" placeholder="请输入材质">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">单价 (元)</label>
+                        <input type="number" class="form-input" placeholder="请输入单价">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">库存数量</label>
+                        <input type="number" class="form-input" placeholder="请输入库存数量">
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <button class="btn btn-outline">取消</button>
+                    <button class="btn btn-primary">保存产品</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">确认删除</div>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>确定要删除该钢材产品吗？此操作不可撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="confirm-btn no">取消</button>
+                <button class="confirm-btn yes">确认删除</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openAddModal() {
+            alert('打开添加产品表单');
+        }
+        function openEditModal(button) {
+            alert('打开编辑产品表单');
+        }
+        function confirmDelete(button) {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'flex';
+            const confirmBtn = modal.querySelector('.confirm-btn.yes');
+            const cancelBtn = modal.querySelector('.confirm-btn.no');
+            const closeBtn = modal.querySelector('.close-btn');
+            confirmBtn.onclick = function() {
+                alert('产品已删除');
+                modal.style.display = 'none';
+            };
+            cancelBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+            closeBtn.onclick = function() {
+                modal.style.display = 'none';
+            };
+        }
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        document.querySelectorAll('.pagination-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.pagination-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kialoin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f6f8fa, #eaeef2);
+      color: #24292f;
+    }
+
+    .container {
+      width: min(92%, 760px);
+      padding: 56px 36px;
+      text-align: center;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(27, 31, 36, 0.1);
+    }
+
+    h1 {
+      margin-bottom: 16px;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+    }
+
+    p {
+      margin-bottom: 28px;
+      font-size: 1.15rem;
+      color: #57606a;
+    }
+
+    a {
+      display: inline-block;
+      padding: 12px 22px;
+      border-radius: 10px;
+      background: #0969da;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover {
+      background: #0757b7;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Kialoin</h1>
+    <p>欢迎来到我的个人主页。</p>
+    <a href="https://github.com/kialoin">View GitHub</a>
+  </main>
+</body>
+</html>
